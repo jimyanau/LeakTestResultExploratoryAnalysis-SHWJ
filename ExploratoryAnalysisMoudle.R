@@ -99,6 +99,54 @@ Extract.LeakTestStation.Data = function(InputFile) {
 
 }
 
+Extract.InspectionData = function(InputFile) {
+  
+  ## Extract raw data from tsv file. 
+  ## Duplicates was not removed
+
+  # InputFile <- "DataSource/GateInspection2017-18.tsv"
+  
+  #Read TSV file
+  dt <- read.table(InputFile, sep = '\t', header = TRUE, stringsAsFactors = FALSE, fill=TRUE)
+  
+  #Convert to data table
+  dt <- data.table(dt)
+  
+  #Keep only XBA parts
+  dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
+  
+  #clean spacer at barcode
+  dt[ , part_id := as.character(gsub("    ", "", part_id))]
+ 
+  dt <- dt[order(dt$datetime), ]
+ 
+  saveRDS(dt, "DataOutput/dt.Inspection.Full.RDS")        
+  
+  
+}
+
+
+
+Extract.TempHumidity = function(InputFile) {
+  
+  ## Extract raw data from tsv file. 
+  ## All processed data include duplicates and was sorted in order of time/part_id. Row contained NA was removed.  
+  
+  # #test variable
+  # InputFile <- "DataSource/TempRecord.tsv"
+  
+  #Read TSV file
+  dt <- read.table(InputFile, sep = '\t', header = TRUE, stringsAsFactors = FALSE)
+  
+  #Convert to data table
+  dt <- data.table(dt)
+
+  #sort in oredr of test date
+  dt <- dt[order(dt$Date.Time, decreasing = FALSE),]
+
+  saveRDS(dt, "DataOutput/dt.TempHumidity.RDS")        
+  
+}
 
 Process.LeakTest.Data = function(dt) {
         ## Process leak test data. 
@@ -143,6 +191,48 @@ Process.LeakTest.Data = function(dt) {
   return(dt) 
 }
 
+Process.LeakTest.Master.Data = function(dt) {
+          ## Process leak test data. 
+          ## Assemble casting date / time based on barcode. Records with incorrect barcode will be dropped.
+          ## Convert some columns into factor
+          
+          # #test variable
+          # dt <- dt.AirDecay.WP.Full
+          
+          #Remove data of leak test masters
+          MasterList <- readRDS("MasterList.RDS")
+          dt <- dt[ part_id %in% MasterList, ]
+          
+          
+          #convert some columns to factor
+          dt[,1] <- lapply(dt[,1], factor)
+          dt[,3] <- lapply(dt[,3], factor)
+          dt[,5] <- lapply(dt[,5], factor)
+          dt[,6] <- lapply(dt[,6], factor)
+          dt[,7] <- lapply(dt[,7], factor)
+          
+          #Assemble Cast MC, Die & HourCode
+          dt$CastMC <- as.factor(paste0("CastMC#",substr(dt$part_id,10,11)))
+          dt$CastDie <- as.factor(paste0("Die#",substr(dt$part_id,12,13)))
+          dt$CastMC_Die <- as.factor(paste0(dt$CastMC,dt$CastDie))
+          dt$HourCode <- as.factor(substr(dt$part_id,14,14))
+          
+          #Assemble Cast Date/Time
+          HourCode <- readRDS("HourCode.RDS")
+          dt <- merge(dt, HourCode, by = "HourCode", all.x = T)
+          dt$CastMin <- substr(dt$part_id,15,16)
+          dt$CastYear <- paste0("20", substr(dt$part_id,4,5))
+          dt$CastMonth <- substr(dt$part_id,6,7)
+          dt$CastDay <- substr(dt$part_id,8,9)
+          dt$CastDate <- ymd(paste0(dt$CastYear,"-",dt$CastMonth,"-", dt$CastDay))
+          dt$CastDateTime <- ymd_hm(paste0(dt$CastYear,"-",dt$CastMonth,"-", dt$CastDay," ", dt$CastHour,":", dt$CastMin))
+          
+          #Remove unwanted columns
+          ColName.Drop <- c("HourCode","CastMin","CastYear","CastMonth","CastDay","CastHour")
+          dt <- dt[,-ColName.Drop, with=FALSE]
+  
+  return(dt) 
+}
 
 
 Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {

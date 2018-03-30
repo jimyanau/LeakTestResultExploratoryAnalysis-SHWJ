@@ -1,0 +1,39 @@
+---
+title: "QUK2 SH WJ Leak Test Data SPC"
+author: "Jim Yan"
+date: "27 March 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# turn on cache
+knitr::opts_chunk$set(cache=TRUE)
+
+```
+
+```{r Preparation,  message=FALSE, warning=FALSE,echo=FALSE}
+# Install & load required packages
+source("ExploratoryAnalysisMoudle.R")
+
+Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2")
+
+Install_And_Load(Required_Packages)
+
+File.LeakTest <- c("DataSource/QUK2SH_WJ_Leak_Rate.tsv")
+# File.Inspection <- c("DataSource/Barcode_Reporting.tsv")
+
+
+dt.LeakTest <- Assemble.LeakTest.Data(File.LeakTest)
+
+dt.selected <- dt.LeakTest[dt.LeakTest$LT_AirDecayTestDateTime >= as.Date("2018-01-01")]
+```
+
+### Mean & Standard Deviation Chart of QUK2 SH WJ Air Decay Leak Test - Water Passsage Section
+
+Below was the mean & standard deviation chart of Air Decay Leak test data of QUK2 SH WJ of Water Passage section from the begining of 2017 till mid Mar. 2018.
+```{r AllDailyChart 2017-2018,  fig.width=10, fig.height=8, echo=FALSE}
+      Plot.WP.Mean.SD.Control.Daily(dt.LeakTest, 0, -3, 2.1)
+```
+
+***
+
