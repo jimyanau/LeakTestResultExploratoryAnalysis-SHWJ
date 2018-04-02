@@ -156,6 +156,9 @@ Process.LeakTest.Data = function(dt) {
         # #test variable
         # dt <- dt.AirDecay.WP.Full
         
+        #Transfer all barcode into upper case
+        dt$part_id <- toupper(dt$part_id)
+        
         #Remove data of leak test masters
         MasterList <- readRDS("MasterList.RDS")
         dt <- dt[ !(part_id %in% MasterList), ]
@@ -400,6 +403,60 @@ Hourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   return(dt) 
 }
 
+Plot.Moving.MeanChart = function(dt, VARx, VARy, nominal, lsl, usl, Mean, Sigma, Title) {
+  # #Var for testing
+  # dt <- dt.Daily.Statics.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "WP Daily Statics"
+  # VARx = "Date"
+  # VARy =  "Avg.LeakRate"
+  # Mean = 1.87
+  # Sigma = 7.04
+
+  #prepare contorl lines for ave. chart
+  sd1 <- Mean + 1*Sigma
+  sd2 <- Mean + 2*Sigma
+  sd3 <- Mean + 3*Sigma
+  sd1.Neg <- Mean - 1*Sigma
+  sd2.Neg <- Mean - 2*Sigma
+  sd3.Neg <- Mean - 3*Sigma
+  
+  SpecLine <- data.frame(ControlValue = c(lsl, nominal,  usl),
+                             ControlType = c("LSL", "Nominal",  "USL" ))
+  
+  LineMean <- data.frame(ControlValue = c(Mean),
+                             ControlType = c("Mean"))
+  
+  ContorlLine1 <- data.frame(ControlValue = c(sd1.Neg, sd1),
+                                ControlType = c("-1 Sigma", "1 Sigma"))
+
+  ContorlLine2 <- data.frame(ControlValue = c(sd2.Neg, sd2),
+                             ControlType = c("-2 Sigma","2 Sigma" ))
+  
+  ContorlLine3 <- data.frame(ControlValue = c(sd3.Neg, sd3),
+                             ControlType = c("-3 Sigma","3 Sigma" ))
+
+  
+  g <- ggplot(dt, aes_string(x = VARx, y = VARy )) +
+                geom_line()+
+                geom_point()+
+                # Remove spec line when process was in stable condition
+                # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
+                geom_hline(data=LineMean, aes(yintercept=ControlValue, colour = ControlType ),   size=1) +
+                geom_hline(data=ContorlLine1, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
+                geom_hline(data=ContorlLine2, aes(yintercept=ControlValue, colour = ControlType), linetype="dashed",  size=1) +
+                geom_hline(data=ContorlLine3, aes(yintercept=ControlValue, colour = ControlType), linetype="dashed",  size=1) +
+                xlab(VARx) +
+                ylab(VARy) +
+                ggtitle(paste(Title) ) +
+                scale_x_date(date_breaks = "1 month", labels = date_format("%b-%y")) + 
+                theme(text = element_text(size=10), axis.text.x = element_text(angle = 90))
+  # print(g)
+  
+  return(g)
+}
 
 Plot.Daily.Mean.SD.Control.MovingLimit = function(dt, nominal, lsl, usl, Title) {
         # #Var for testing

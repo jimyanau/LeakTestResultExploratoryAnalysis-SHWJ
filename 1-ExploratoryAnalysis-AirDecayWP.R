@@ -3,7 +3,7 @@ rm(list=ls())
 source("ExploratoryAnalysisMoudle.R")
 
 # Install & load required packages
-Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly")
+Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly","mlr", "psych")
 
 Install_And_Load(Required_Packages)
 
@@ -18,10 +18,39 @@ dt.AirDecay.WP.Master <- readRDS("DataOutput/dt.AirDecay.WP.Master.RDS")
 dt.TempHumidity <- readRDS("DataOutput/dt.TempHumidity.RDS")
 # dt.Inspection.Full <- readRDS("DataOutput/dt.Inspection.Full.RDS")
 
+
+## Check data summary
+summarizeColumns(dt.AirDecay.WP.NoMaster)
+## Found that there were missing values on casting date due to wrong barcode format. We need to remove those part with incorrect ID.
+dt.AirDecay.WP.NoMaster <- dt.AirDecay.WP.NoMaster[complete.cases(dt.AirDecay.WP.NoMaster),]
+## Check data summary
+summarizeColumns(dt.AirDecay.WP.NoMaster)
+
 ## Remove duplicates, calculate leak test result based on supplied spec.
-## Run statics on data sets
-## Master data was excluded
-dt.Daily.Statics.AirDecay.WP <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster, -3, 2.1 )
+## Run statics on data on daily basis.
+dt.Daily.Statics.AirDecay.WP.NoMaster <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster, -3, 2.1 )
+
+
+## find the descriptive statistics of daily summary
+describe(dt.Daily.Statics.AirDecay.WP.NoMaster)
+
+## Plot Contorl Chart from Jan2017 till MAR2018
+Plot.Daily.Mean.SD.Control.MovingLimit(dt.Daily.Statics.AirDecay.WP.NoMaster, 0, -3, 2.1, "WP Daily Statics")
+
+
+g.Mean <- Plot.Moving.MeanChart(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Avg.LeakRate", 0, -3, 2.1,
+                                mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Avg.LeakRate),
+                                sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Avg.LeakRate),
+                                "WP Leak Rate Statics - Daily Mean Chart")
+
+g.SD <- Plot.Moving.MeanChart(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Stdev.LeakRate", 0, 0, 0,
+                                mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
+                                sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
+                                "WP Leak Rate Statics - Daily Sigma Chart")
+
+print(g.Mean)
+
+
 # dt.Daily.Statics.AirDecay.MC <- Daily.Statics.AirDecay.MC(dt.AirDecay.MC.Full, -6, 6 )
 # dt.Daily.Statics.AirDecay.He <- Daily.Statics.AirDecay.He(dt.AirDecay.He.Full, 0, 3.0E-6 )
 
@@ -32,8 +61,7 @@ dt.Daily.Statics.AirDecay.WP <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaste
 ######################################################################################################################################################################
 ## Exploratory Analysis Starts of Water Passage Air Decay Test
 
-## Plot Contorl Chart from Jan2017 till MAR2018
-Plot.Daily.Mean.SD.Control.MovingLimit(dt.Daily.Statics.AirDecay.WP, 0, -3, 2.1, "WP Daily Statics")
+
 
 
 ## Select data from 2018 for investigation

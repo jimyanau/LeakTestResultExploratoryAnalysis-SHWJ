@@ -3,7 +3,7 @@ rm(list=ls())
 source("ExploratoryAnalysisMoudle.R")
 
 # Install & load required packages
-Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly")
+Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly", "mlr")
 
 Install_And_Load(Required_Packages)
 
@@ -32,9 +32,10 @@ Extract.InspectionData(File.Inspection)
 
 
 ## Process leak test data. 
+## Convert part ID into upper cases
 ## Assemble casting date / time based on barcode. Records with incorrect barcode format will be dropped.
 ## Convert some columns into factor
-## Master Part Data will be excluded in the dataset
+## subset Master Part Data into separated datasets
 dt.AirDecay.WP.Full <- readRDS("DataOutput/dt.AirDecay.WP.Full.RDS")
 dt.AirDecay.MC.Full <- readRDS("DataOutput/dt.AirDecay.MC.Full.RDS")
 dt.AirDecay.He.Full <- readRDS("DataOutput/dt.AirDecay.He.Full.RDS")

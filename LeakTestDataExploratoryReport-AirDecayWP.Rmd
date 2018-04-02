@@ -2,7 +2,9 @@
 title: "QUK2 SH WJ Leak Test Data Exploratory Analysis"
 author: "Jim Yan"
 date: "30 March 2018"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -14,15 +16,47 @@ knitr::opts_chunk$set(cache=TRUE)
 # Install & load required packages
 source("ExploratoryAnalysisMoudle.R")
 
-Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly")
+Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly", "mlr")
 Install_And_Load(Required_Packages)
 ```
 
-### Mean & Standard Deviation Chart of QUK2 SH WJ Air Decay Leak Test - Water Passsage Section
+## QUK2 SH WJ Air Decay Leak Test - Water Passsage Section
 
-Below was the mean & standard deviation chart of Air Decay Leak test data of QUK2 SH WJ of Water Passage section from the begining of 2017 till mid Mar. 2018.
+### Dataset at glance
+
+Data was extrated from raw data by running script "0-ExtractCleanData-LeakTestStation.R".
+
+Remarks of the extraction process:
+
+* Duplicates was not removed.
+* All processed data include duplicates and was sorted in order of time/part_id. 
+* Data from the same file will be subset into 3 different data set with similar structure.
+* Within the same table, the Rows contained NA was removed.
+
+Datasets were saved into below files:
+
+* DataOutput/dt.AirDecay.WP.Full.RDS
+* DataOutput/dt.AirDecay.MC.Full.RDS
+* DataOutput/dt.AirDecay.He.Full.RDS
+
+```{r, message=FALSE, warning=FALSE}
+      dt.AirDecay.WP.NoMaster <- readRDS("DataOutput/dt.AirDecay.WP.NoMaster.RDS")
+      ## Check data summary
+      summarizeColumns(dt.AirDecay.WP.NoMaster)
+```
+
+Found that there were missing values on casting date due to wrong barcode format. We need to remove those part with incorrect ID.
+
+```{r, message=FALSE, warning=FALSE}
+      dt.AirDecay.WP.NoMaster <- dt.AirDecay.WP.NoMaster[complete.cases(dt.AirDecay.WP.NoMaster),]
+      ## Check data summary
+      summarizeColumns(dt.AirDecay.WP.NoMaster)
+```
+
+Now summarizing the daily statics of the leak rate.
+
 ```{r AllDailyChart 2017-2018,  fig.width=10, fig.height=8, echo=FALSE}
-      Plot.WP.Mean.SD.Control.Daily(dt.LeakTest, 0, -3, 2.1)
+      
 ```
 
 ***
