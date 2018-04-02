@@ -32,6 +32,9 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 
+# Excel Summary Reports
+*.xlsx
+
 # Original Datasets
 /DataSource/
 /DataOutput/

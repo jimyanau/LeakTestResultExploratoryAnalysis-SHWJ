@@ -29,173 +29,157 @@ summarizeColumns(dt.AirDecay.WP.NoMaster)
 ## Remove duplicates, calculate leak test result based on supplied spec.
 ## Run statics on data on daily basis.
 dt.Daily.Statics.AirDecay.WP.NoMaster <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster, -3, 2.1 )
-
-
-## find the descriptive statistics of daily summary
-describe(dt.Daily.Statics.AirDecay.WP.NoMaster)
-
-## Plot Contorl Chart from Jan2017 till MAR2018
-Plot.Daily.Mean.SD.Control.MovingLimit(dt.Daily.Statics.AirDecay.WP.NoMaster, 0, -3, 2.1, "WP Daily Statics")
-
-
-g.Mean <- Plot.Moving.MeanChart(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Avg.LeakRate", 0, -3, 2.1,
-                                mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Avg.LeakRate),
-                                sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Avg.LeakRate),
-                                "WP Leak Rate Statics - Daily Mean Chart")
-
-g.SD <- Plot.Moving.MeanChart(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Stdev.LeakRate", 0, 0, 0,
-                                mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
-                                sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
-                                "WP Leak Rate Statics - Daily Sigma Chart")
-
-print(g.Mean)
-
-
 # dt.Daily.Statics.AirDecay.MC <- Daily.Statics.AirDecay.MC(dt.AirDecay.MC.Full, -6, 6 )
 # dt.Daily.Statics.AirDecay.He <- Daily.Statics.AirDecay.He(dt.AirDecay.He.Full, 0, 3.0E-6 )
 
 
 
-######################################################################################################################################################################
-######################################################################################################################################################################
-######################################################################################################################################################################
-## Exploratory Analysis Starts of Water Passage Air Decay Test
+## find the descriptive statistics of daily summary
+describe(dt.Daily.Statics.AirDecay.WP.NoMaster)
 
 
+## Establish control limits from good dates
+dt.Daily.Statics.AirDecay.WP.2018 <- dt.Daily.Statics.AirDecay.WP.NoMaster[dt.Daily.Statics.AirDecay.WP.NoMaster$Date >= as.Date("2018-01-01"),]
+
+g.Mean <- Plot.LineChart.Date(dt.Daily.Statics.AirDecay.WP.2018, "Date", "Avg.LeakRate", 0, -3, 2.1,
+                         mean(dt.Daily.Statics.AirDecay.WP.2018$Avg.LeakRate),
+                         sd(dt.Daily.Statics.AirDecay.WP.2018$Avg.LeakRate),
+                         "WP Leak Rate Statics - Daily Mean Chart")
+
+g.SD <- Plot.LineChart.Date(dt.Daily.Statics.AirDecay.WP.2018, "Date", "Stdev.LeakRate", 0, 0, 0,
+                       mean(dt.Daily.Statics.AirDecay.WP.2018$Stdev.LeakRate),
+                       sd(dt.Daily.Statics.AirDecay.WP.2018$Stdev.LeakRate),
+                       "WP Leak Rate Statics - Daily Sigma Chart")
+
+g.NGRate <- Plot.LineChart.Date(dt.Daily.Statics.AirDecay.WP.2018, "Date", "RejectPrecent", 0, 0, 0,
+                           mean(dt.Daily.Statics.AirDecay.WP.2018$RejectPrecent),
+                           sd(dt.Daily.Statics.AirDecay.WP.2018$RejectPrecent),
+                           "WP Leak Rate Statics - Daily Reject Precentage Chart")
+
+g.qty <- Plot.LineChart.Date(dt.Daily.Statics.AirDecay.WP.2018, "Date", "Qty", 0, 0, 0,
+                        mean(dt.Daily.Statics.AirDecay.WP.2018$Qty),
+                        sd(dt.Daily.Statics.AirDecay.WP.2018$Qty),
+                        "WP Leak Rate Statics - Daily Reject Qty. Chart")
+
+multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
 
 
-## Select data from 2018 for investigation
-dt.Daily.Statics.AirDecay.WP.2018 <- dt.Daily.Statics.AirDecay.WP[dt.Daily.Statics.AirDecay.WP$Date >= as.Date("2018-01-01"),]
-
-## Within the 2018 dataset, the mean of daily average leak rate was 0.1059684 while sigma was 0.1298548
-mean(dt.Daily.Statics.AirDecay.WP.2018$Avg.LeakRate)
-sd(dt.Daily.Statics.AirDecay.WP.2018$Avg.LeakRate)
-
-## Plot contorl charts of 2018
-Plot.Daily.Mean.SD.Control.MovingLimit(dt.Daily.Statics.AirDecay.WP.2018, 0, -3, 2.1, "WP Daily Statics")
-
-## Now we select some dates according to the 8 rules 
-
-## Start with Average Leak Rate Chart
-## Rule1: One Point outside 3 sigma zone - 27/FEB/2018
-## Rule2: 9 points on the same side of mean - 12/FEB/2018 to 20/FEB/2018
-## Rule3: 6 points in a row steadily increasing or decreasing - 18/FEB/2018 to 23/FEB/2018
-## Rule4: 14 points in a row alternating up and down - N/A
-## Rule5: 2 out of 3 points in a row beyong outside 2 sigma range - 27/FEB/2018 to 1/MAR/2018
-## Rule6: 4 out of 5 points in a row outside 1 sigma range - 24/FEB/2018 to 28/FEB/2018
-## Rule7: 15 points in a row within 1 sigma range - N/A (max. case was 14 points within 1 sigma zone)
-## Rule8: 8 points in a row on both side of centerline within 2 sigma zone - 4/FEB/2018 to 11/FEB/2018
-## Good Period: 10/JAN/2018 to 16/JAN/2018
-
-## Subset data from groups
-dt.good <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) >= as.Date("2018-01-10") 
-                               & date(dt.AirDecay.WP.Full$LeakTestDateTime) <= as.Date("2018-01-16") ,]
-
-dt.ng.Rule1 <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) == as.Date("2018-02-27"),]
-
-dt.ng.Rule2 <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) >= as.Date("2018-02-12") 
-                               & date(dt.AirDecay.WP.Full$LeakTestDateTime) <= as.Date("2018-02-20") ,]
-
-dt.ng.Rule3 <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) >= as.Date("2018-02-18") 
-                                & date(dt.AirDecay.WP.Full$LeakTestDateTime) <= as.Date("2018-02-23") ,]
-
-dt.ng.Rule5 <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) >= as.Date("2018-02-27") 
-                               & date(dt.AirDecay.WP.Full$LeakTestDateTime) <= as.Date("2018-03-01") ,]
-
-dt.ng.Rule6 <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) >= as.Date("2018-02-24") 
-                               & date(dt.AirDecay.WP.Full$LeakTestDateTime) <= as.Date("2018-02-28") ,]
-
-dt.ng.Rule8 <- dt.AirDecay.WP.Full[date(dt.AirDecay.WP.Full$LeakTestDateTime) >= as.Date("2018-02-04") 
-                                   & date(dt.AirDecay.WP.Full$LeakTestDateTime) <= as.Date("2018-02-11") ,]
+## Select below good dates to establish contorl limit: 10/JAN/2018 to 16/JAN/2018, 1~4/FEB, 20/FEB, 22/FEB
+date.good <- data.frame(Date = c(as.Date("2018-01-10"), as.Date("2018-01-11"), as.Date("2018-01-12"), as.Date("2018-01-13"), as.Date("2018-01-14"),
+                                 as.Date("2018-01-15"), as.Date("2018-01-16"), as.Date("2018-02-01"), as.Date("2018-02-02"), as.Date("2018-02-03"),
+                                 as.Date("2018-02-04"), as.Date("2018-02-20"), as.Date("2018-02-22")))
+dt.good <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) %in% date.good[,1], ]
+dt.good <- dt.good[order(dt.good$LeakTestDateTime, decreasing = FALSE),]
+#Remove duplicates
+dt.good <- dt.good[ , .SD[.N] ,  by = c("part_id") ]
+Mean.Control.WP <- mean(dt.good$air_decay_wp)
+Sigma.Control.WP <- sd(dt.good$air_decay_wp)
 
 
-######################################################################################################################################################################
-## Try to identify contorl limits from "good" sample group
-
-dt.Hourly.Statics.AirDecay.WP.good <- Hourly.Statics.AirDecay.WP(dt.good, -3, 2.1)
-
-## Contorl Charts with moving limits of "good" sample group
-Plot.Hourly.WP.Mean.SD.Control.MovingLimit(dt.Hourly.Statics.AirDecay.WP.good, 0, -3, 2.1, "WP Hourly Statics")
-
-## Set contorl limits based on the statics of "good" sample group
-Mean.Ave.WP <- mean(dt.Hourly.Statics.AirDecay.WP.good$Avg.LeakRate)  #set the mean target of coltrol limit of average leak rate as 0.09256552
-SD.Ave.WP <- sd(dt.Hourly.Statics.AirDecay.WP.good$Avg.LeakRate)  #set the sigma target of coltrol limit of average leak rate as 0.1169584
-Mean.SD.WP <- mean(dt.Hourly.Statics.AirDecay.WP.good$Stdev.LeakRate)  #set the sigma target of coltrol limit of the sigma of leak rate as 0.1446988
-SD.SD.WP <- sd(dt.Hourly.Statics.AirDecay.WP.good$Stdev.LeakRate)  #set the sigma target of coltrol limit of the sigma of leak rate as 0.04539666
-
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.good, 0, -3, 2.1, "WP Hourly Statics - Stable Group", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-
-## Observe the trend chart of every data points
-## Compare the actual situation with data after removing duplicates
-Plot.SinglePoint.WP.ControlChart(dt.good, 0, -3, 2.1, "Air Decay WP - Good Group")
-dt.good.cleaned <- RemoveDuplicates.KeepLatest(dt.good)
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.good.cleaned, 0, -3, 2.1, "Air Decay WP - Good Group")
-
-
-
-######################################################################################################################################################################
-## Check control charts of abnormal groups with contorl limits established from "Good" samples
-
-## Rule1: One Point outside 3 sigma zone - 27/FEB/2018
-dt.Hourly.Statics.AirDecay.WP.Rule1 <- Hourly.Statics.AirDecay.WP(dt.ng.Rule1, -3, 2.1)
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.Rule1, 0, -3, 2.1, "WP Hourly Statics - NG Rule1", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule1, 0, -3, 2.1, "Air Decay WP - Rule1 NG Group")
-dt.ng.Rule1.cleaned <- RemoveDuplicates.KeepLatest(dt.ng.Rule1)
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.ng.Rule1.cleaned, 0, -3, 2.1, "Air Decay WP - Rule1 NG Group")
-
-## Rule2: 9 points on the same side of mean - 12/FEB/2018 to 20/FEB/2018
-dt.Hourly.Statics.AirDecay.WP.Rule2 <- Hourly.Statics.AirDecay.WP(dt.ng.Rule2, -3, 2.1)
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.Rule2, 0, -3, 2.1, "WP Hourly Statics - NG Rule2", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule2, 0, -3, 2.1, "Air Decay WP - Rule2 NG Group")
-dt.ng.Rule2.cleaned <- RemoveDuplicates.KeepLatest(dt.ng.Rule2)
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.ng.Rule2.cleaned, 0, -3, 2.1, "Air Decay WP - Rule2 NG Group")
-
-
-## Rule3: 6 points in a row steadily increasing or decreasing - 18/FEB/2018 to 23/FEB/2018
-dt.Hourly.Statics.AirDecay.WP.Rule3 <- Hourly.Statics.AirDecay.WP(dt.ng.Rule3, -3, 2.1)
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.Rule3, 0, -3, 2.1, "WP Hourly Statics - NG Rule3", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule3, 0, -3, 2.1, "Air Decay WP - Rule3 NG Group")
-dt.ng.Rule3.cleaned <- RemoveDuplicates.KeepLatest(dt.ng.Rule3)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule3.cleaned, 0, -3, 2.1, "Air Decay WP - Rule3 NG Group")
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.ng.Rule3.cleaned, 0, -3, 2.1, "Air Decay WP - Rule3 NG Group")
-
-## Rule5: 2 out of 3 points in a row beyong outside 2 sigma range - 27/FEB/2018 to 1/MAR/2018
-dt.Hourly.Statics.AirDecay.WP.Rule5 <- Hourly.Statics.AirDecay.WP(dt.ng.Rule5, -3, 2.1)
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.Rule5, 0, -3, 2.1, "WP Hourly Statics - NG Rule5", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule5, 0, -3, 2.1, "Air Decay WP - Rule5 NG Group")
-dt.ng.Rule5.cleaned <- RemoveDuplicates.KeepLatest(dt.ng.Rule5)
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.ng.Rule5.cleaned, 0, -3, 2.1, "Air Decay WP - Rule5 NG Group")
-
-## Rule6: 4 out of 5 points in a row outside 1 sigma range - 24/FEB/2018 to 28/FEB/2018
-dt.Hourly.Statics.AirDecay.WP.Rule6 <- Hourly.Statics.AirDecay.WP(dt.ng.Rule6, -3, 2.1)
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.Rule6, 0, -3, 2.1, "WP Hourly Statics - NG Rule6", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule6, 0, -3, 2.1, "Air Decay WP - Rule6 NG Group")
-dt.ng.Rule6.cleaned <- RemoveDuplicates.KeepLatest(dt.ng.Rule6)
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.ng.Rule6.cleaned, 0, -3, 2.1, "Air Decay WP - Rule6 NG Group")
-
-## Rule8: 8 points in a row on both side of centerline with none in 3 sigma zone - 4/FEB/2018 to 11/FEB/2018
-dt.Hourly.Statics.AirDecay.WP.Rule8 <- Hourly.Statics.AirDecay.WP(dt.ng.Rule8, -3, 2.1)
-Plot.Hourly.WP.Mean.SD.Control.FixedLimit(dt.Hourly.Statics.AirDecay.WP.Rule8, 0, -3, 2.1, "WP Hourly Statics - NG Rule8", Mean.Ave.WP, SD.Ave.WP, Mean.SD.WP, SD.SD.WP)
-Plot.SinglePoint.WP.ControlChart(dt.ng.Rule8, 0, -3, 2.1, "Air Decay WP - Rule8 NG Group")
-dt.ng.Rule8.cleaned <- RemoveDuplicates.KeepLatest(dt.ng.Rule8)
-Plot.SinglePoint.WP.LeakRate.Dynamic(dt.ng.Rule8.cleaned, 0, -3, 2.1, "Air Decay WP - Rule8 NG Group")
-Plot.SinglePoint.WP.Histogram(dt.ng.Rule8.cleaned, 0, -3, 2.1, "Air Decay WP - Rule8 NG Group")
-
-
-######################################################################################################################################################################
-######################################################################################################################################################################
-######################################################################################################################################################################
-## Exploratory Analysis Starts of Main Case Air Decay Test
 
 ## Plot Contorl Chart from Jan2017 till MAR2018
-Plot.Daily.Mean.SD.Control.MovingLimit(dt.Daily.Statics.AirDecay.MC, 0, -6, 6, "MC Daily Statics")
+g.Mean <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Avg.LeakRate", 0, -3, 2.1,
+                                mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Avg.LeakRate),
+                                sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Avg.LeakRate),
+                                "WP Leak Rate Statics - Daily Mean Chart")
 
-## Select data from 2018 for investigation
-dt.Daily.Statics.AirDecay.MC.2018 <- dt.Daily.Statics.AirDecay.MC[dt.Daily.Statics.AirDecay.MC$Date >= as.Date("2018-01-01"),]
+g.SD <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Stdev.LeakRate", 0, 0, 0,
+                                mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
+                                sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
+                                "WP Leak Rate Statics - Daily Sigma Chart")
 
-## Within the 2018 dataset, the mean of daily average leak rate was 0.7344318 while sigma was 1.055863
-mean(dt.Daily.Statics.AirDecay.MC.2018$Avg.LeakRate)
-sd(dt.Daily.Statics.AirDecay.MC.2018$Avg.LeakRate)
+g.NGRate <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "RejectPrecent", 0, 0, 0,
+                              mean(dt.Daily.Statics.AirDecay.WP.NoMaster$RejectPrecent),
+                              sd(dt.Daily.Statics.AirDecay.WP.NoMaster$RejectPrecent),
+                              "WP Leak Rate Statics - Daily Reject Precentage Chart")
 
-## Plot contorl charts of 2018
-Plot.Daily.Mean.SD.Control.MovingLimit(dt.Daily.Statics.AirDecay.MC.2018, 0, -6, 6, "MC Daily Statics")
+g.qty <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Qty", 0, 0, 0,
+                           mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Qty),
+                           sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Qty),
+                           "WP Leak Rate Statics - Daily Reject Qty. Chart")
+
+multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
+
+
+
+
+## Observation #1: 1/JAN~ 29/JAN 2017: High reject rate but low leak rate variation
+## Subset dataset from specific period
+## Found out there was variation on leak rate, it didn't show up previously due to scale issue.
+        dt.P1 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-01") 
+                                      & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-29") ,]
+        
+        dt.Hourly.Statics.P1 <- Hourly.Statics.AirDecay.WP(dt.P1, -3, 2.1 )
+        
+        g.Mean.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Avg.LeakRate", 0, -3, 2.1,
+                                 mean(dt.Hourly.Statics.P1$Avg.LeakRate),
+                                 sd(dt.Hourly.Statics.P1$Avg.LeakRate),
+                                 "WP Leak Rate Statics - Hourly Sigma Chart")
+        
+        g.Mean.P1 <- g.Mean.P1 + 
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                                ymin=-1, ymax=5, alpha=.1,fill="blue") + 
+                      annotate("text", label="3~6/JAN 2017: \nHigh Leak Rate\n Variation & \nReject Rate", x=as.POSIXct(as.Date("2017-01-05")), y=4 ) +
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                               ymin=-1, ymax=5, alpha=.1,fill="blue") +
+                      annotate("text", label="11~13/JAN 2017: \nHigh Leak Rate\n Variation & \nReject Rate", x=as.POSIXct(as.Date("2017-01-12")), y=4 )
+          
+        g.SD.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Stdev.LeakRate", 0, 0, 0,
+                                             mean(dt.Hourly.Statics.P1$Stdev.LeakRate),
+                                             sd(dt.Hourly.Statics.P1$Stdev.LeakRate),
+                                             "WP Leak Rate Statics - Hourly Mean Chart")
+
+        g.SD.P1 <- g.SD.P1 + 
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                               ymin=-1, ymax=10, alpha=.1,fill="blue") + 
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                               ymin=-1, ymax=10, alpha=.1,fill="blue") 
+
+        g.NGRate.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "RejectPrecent", 0, 0, 0,
+                                             mean(dt.Hourly.Statics.P1$RejectPrecent),
+                                             sd(dt.Hourly.Statics.P1$RejectPrecent),
+                                             "WP Leak Rate Statics - Hourly Reject Precentage Chart")
+
+        g.NGRate.P1 <- g.NGRate.P1 + 
+                          annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                                   ymin=-1, ymax=50, alpha=.1,fill="blue") + 
+                          annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                                   ymin=-1, ymax=50, alpha=.1,fill="blue") 
+                
+        g.qty.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Qty", 0, 0, 0,
+                                             mean(dt.Hourly.Statics.P1$Qty),
+                                             sd(dt.Hourly.Statics.P1$Qty),
+                                             "WP Leak Rate Statics - Hourly Reject Qty. Chart")
+
+        g.qty.P1 <- g.qty.P1 + 
+                        annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                                 ymin=-1, ymax=30, alpha=.1,fill="blue") + 
+                        annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                                 ymin=-1, ymax=30, alpha=.1,fill="blue") 
+        
+        multiplot(g.Mean.P1, g.SD.P1, g.NGRate.P1, g.qty.P1, cols=1)
+
+        
+                
+## Observation #2: 03/JAN ~ 06/JAN 2017: High variation on leak rate and reject rate
+
+        # Tidy Leak Rate Data
+        dt.LeakRate.WP.P2 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-03") 
+                                         & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-06") ,]
+
+        dt.LeakRate.WP.P2 <- dt.LeakRate.WP.P2[order(dt.LeakRate.WP.P2$LeakTestDateTime, decreasing = FALSE),]
+        
+        # Plot Leak Rate Chart
+        g.LeakRate.WP.P2 <- Plot.SinglePoint.WP.ControlChart(dt.LeakRate.WP.P2, 0, -3, 2.1, "Leak Rate WP - 03~06/JAN/2017")
+        
+        # Tidy Master Part Leak Data
+        dt.LeakRate.Master.WP.P2 <- dt.AirDecay.WP.Master[date(dt.AirDecay.WP.Master$LeakTestDateTime) >= as.Date("2017-01-03") 
+                                                     & date(dt.AirDecay.WP.Master$LeakTestDateTime) <= as.Date("2017-01-06") 
+                                                     & dt.AirDecay.WP.Master$part_id == "XBA1601290101A23",]
+        dt.LeakRate.Master.WP.P2 <- dt.LeakRate.Master.WP.P2[order(dt.LeakRate.Master.WP.P2$LeakTestDateTime, decreasing = FALSE),]
+        
+        
+        
+        
+        
+        

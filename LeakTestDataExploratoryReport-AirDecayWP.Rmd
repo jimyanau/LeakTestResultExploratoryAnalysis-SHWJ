@@ -16,7 +16,7 @@ knitr::opts_chunk$set(cache=TRUE)
 # Install & load required packages
 source("ExploratoryAnalysisMoudle.R")
 
-Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly", "mlr")
+Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly", "mlr", "psych")
 Install_And_Load(Required_Packages)
 ```
 
@@ -39,29 +39,183 @@ Datasets were saved into below files:
 * DataOutput/dt.AirDecay.MC.Full.RDS
 * DataOutput/dt.AirDecay.He.Full.RDS
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
       dt.AirDecay.WP.NoMaster <- readRDS("DataOutput/dt.AirDecay.WP.NoMaster.RDS")
       ## Check data summary
-      summarizeColumns(dt.AirDecay.WP.NoMaster)
-```
+      # summarizeColumns(dt.AirDecay.WP.NoMaster)
 
-Found that there were missing values on casting date due to wrong barcode format. We need to remove those part with incorrect ID.
-
-```{r, message=FALSE, warning=FALSE}
+      ## Found that there were missing values on casting date due to wrong barcode format. We need to remove those part with incorrect ID.
       dt.AirDecay.WP.NoMaster <- dt.AirDecay.WP.NoMaster[complete.cases(dt.AirDecay.WP.NoMaster),]
       ## Check data summary
-      summarizeColumns(dt.AirDecay.WP.NoMaster)
-```
-
-Now summarizing the daily statics of the leak rate.
-
-```{r AllDailyChart 2017-2018,  fig.width=10, fig.height=8, echo=FALSE}
-      
+      # summarizeColumns(dt.AirDecay.WP.NoMaster)
 ```
 
 ***
 
-```{r}
+### Observation Leak Rate from Jan2018 to Mar2018
+
+Now summarizing the daily statics of the leak rate from JAN/2018 to Mar/2018.
+
+```{r AllDailyChart 2018,  fig.width=10, fig.height=8, echo=FALSE}
+      ## Remove duplicates, calculate leak test result based on supplied spec.
+      ## Run statics on data on daily basis.
+      dt.Daily.Statics.AirDecay.WP.NoMaster <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster, -3, 2.1 )
+
+      dt.Daily.Statics.AirDecay.WP.NoMaster.2018 <- dt.Daily.Statics.AirDecay.WP.NoMaster[dt.Daily.Statics.AirDecay.WP.NoMaster$Date >= as.Date("2018-01-01"),]
+
+      g.Mean.2018 <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster.2018, "Date", "Avg.LeakRate", 0, -3, 2.1,
+                                      mean(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$Avg.LeakRate),
+                                      sd(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$Avg.LeakRate),
+                                      "WP Leak Rate Statics - Daily Mean Chart")
+      
+      g.SD.2018 <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster.2018, "Date", "Stdev.LeakRate", 0, 0, 0,
+                                      mean(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$Stdev.LeakRate),
+                                      sd(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$Stdev.LeakRate),
+                                      "WP Leak Rate Statics - Daily Sigma Chart")
+      
+      g.NGRate.2018 <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster.2018, "Date", "RejectPrecent", 0, 0, 0,
+                                    mean(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$RejectPrecent),
+                                    sd(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$RejectPrecent),
+                                    "WP Leak Rate Statics - Daily Reject Precentage Chart")
+      
+      g.qty.2018 <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster.2018, "Date", "Qty", 0, 0, 0,
+                                 mean(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$Qty),
+                                 sd(dt.Daily.Statics.AirDecay.WP.NoMaster.2018$Qty),
+                                 "WP Leak Rate Statics - Daily Reject Qty. Chart")
+      
+      multiplot(g.Mean.2018, g.SD.2018, g.NGRate.2018, g.qty.2018, cols=1)
+```
+
+***
+
+### Establish Contorl Limit of Leak Rate
+
+Establishing contorl limits from goods dates in 2018: 10/JAN/2018 to 16/JAN/2018, 1~4/FEB, 20/FEB, 22/FEB. 
+```{r ControlLimit,   warning=FALSE, echo=FALSE}
+date.good <- data.frame(Date = c(as.Date("2018-01-10"), as.Date("2018-01-11"), as.Date("2018-01-12"), as.Date("2018-01-13"),
+                                 as.Date("2018-01-14"), as.Date("2018-01-15"), as.Date("2018-01-16"), as.Date("2018-02-01"),
+                                 as.Date("2018-02-02"), as.Date("2018-02-03"), as.Date("2018-02-04"), as.Date("2018-02-20"),
+                                 as.Date("2018-02-22")))
+
+dt.good <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) %in% date.good[,1], ]
+dt.good <- dt.good[order(dt.good$LeakTestDateTime, decreasing = FALSE),]
+
+#Remove duplicates
+dt.good <- dt.good[ , .SD[.N] ,  by = c("part_id") ]
+# describe(dt.good)
+
+# Setup control mean and sigma
+Mean.Control.WP <- mean(dt.good$air_decay_wp)
+Sigma.Control.WP <- sd(dt.good$air_decay_wp)
 
 ```
 
+Contorl Limits of leak rate was set as below:
+
+* Mean Contorl Limit = `r Mean.Control.WP`
+* Sigma Contorl Limit = `r Sigma.Control.WP`
+
+***
+
+### Observation Leak Rate from Jan2017 to Mar2018
+
+Now summarizing the daily statics of the leak rate from JAN/2017 to Mar/2018.
+```{r AllDailyChart 2017-2018,  fig.width=10, fig.height=12, echo=FALSE}
+      ## Remove duplicates, calculate leak test result based on supplied spec.
+      ## Run statics on data on daily basis.
+      # dt.Daily.Statics.AirDecay.WP.NoMaster <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster, -3, 2.1 )
+
+      g.Mean <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Avg.LeakRate", 0, -3, 2.1,
+                                      Mean.Control.WP,
+                                      Sigma.Control.WP,
+                                      "WP Leak Rate Statics - Daily Mean Chart")
+      
+      g.SD <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Stdev.LeakRate", 0, 0, 0,
+                                      mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
+                                      sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Stdev.LeakRate),
+                                      "WP Leak Rate Statics - Daily Sigma Chart")
+      
+      g.NGRate <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "RejectPrecent", 0, 0, 0,
+                                    mean(dt.Daily.Statics.AirDecay.WP.NoMaster$RejectPrecent),
+                                    sd(dt.Daily.Statics.AirDecay.WP.NoMaster$RejectPrecent),
+                                    "WP Leak Rate Statics - Daily Reject Precentage Chart")
+      
+      g.qty <- Plot.LineChart.Year(dt.Daily.Statics.AirDecay.WP.NoMaster, "Date", "Qty", 0, 0, 0,
+                                 mean(dt.Daily.Statics.AirDecay.WP.NoMaster$Qty),
+                                 sd(dt.Daily.Statics.AirDecay.WP.NoMaster$Qty),
+                                 "WP Leak Rate Statics - Daily Reject Qty. Chart")
+      
+      multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
+```
+
+***
+
+### Observation - leak rate in Jan-17
+
+Subset data from "2017-01-11" to "2017-01-29" for observation. Ploted the hourly statics. Observed 2 period of time with high variation on leak rate and reject rate:
+
+* 03~06 JAN 2017;
+* 11~13 JAN 2017;
+
+```{r,  fig.width=10, fig.height=12, echo=FALSE}
+        dt.P1 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-01") 
+                                      & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-29") ,]
+        
+        dt.Hourly.Statics.P1 <- Hourly.Statics.AirDecay.WP(dt.P1, -3, 2.1 )
+        
+        g.Mean.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Avg.LeakRate", 0, -3, 2.1,
+                                 mean(dt.Hourly.Statics.P1$Avg.LeakRate),
+                                 sd(dt.Hourly.Statics.P1$Avg.LeakRate),
+                                 "WP Leak Rate Statics - Hourly Sigma Chart")
+        
+        g.Mean.P1 <- g.Mean.P1 + 
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                                ymin=-1, ymax=5, alpha=.1,fill="blue") + 
+                      annotate("text", label="3~6/JAN 2017: \nHigh Leak Rate\n Variation & \nReject Rate", x=as.POSIXct(as.Date("2017-01-05")), y=4 ) +
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                               ymin=-1, ymax=5, alpha=.1,fill="blue") +
+                      annotate("text", label="11~13/JAN 2017: \nHigh Leak Rate\n Variation & \nReject Rate", x=as.POSIXct(as.Date("2017-01-12")), y=4 )
+          
+        g.SD.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Stdev.LeakRate", 0, 0, 0,
+                                             mean(dt.Hourly.Statics.P1$Stdev.LeakRate),
+                                             sd(dt.Hourly.Statics.P1$Stdev.LeakRate),
+                                             "WP Leak Rate Statics - Hourly Mean Chart")
+
+        g.SD.P1 <- g.SD.P1 + 
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                               ymin=-1, ymax=10, alpha=.1,fill="blue") + 
+                      annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                               ymin=-1, ymax=10, alpha=.1,fill="blue") 
+
+        g.NGRate.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "RejectPrecent", 0, 0, 0,
+                                             mean(dt.Hourly.Statics.P1$RejectPrecent),
+                                             sd(dt.Hourly.Statics.P1$RejectPrecent),
+                                             "WP Leak Rate Statics - Hourly Reject Precentage Chart")
+
+        g.NGRate.P1 <- g.NGRate.P1 + 
+                          annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                                   ymin=-1, ymax=50, alpha=.1,fill="blue") + 
+                          annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                                   ymin=-1, ymax=50, alpha=.1,fill="blue") 
+                
+        g.qty.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Qty", 0, 0, 0,
+                                             mean(dt.Hourly.Statics.P1$Qty),
+                                             sd(dt.Hourly.Statics.P1$Qty),
+                                             "WP Leak Rate Statics - Hourly Reject Qty. Chart")
+
+        g.qty.P1 <- g.qty.P1 + 
+                        annotate("rect", xmin=as.POSIXct(as.Date("2017-01-03")), xmax=as.POSIXct(as.Date("2017-01-07")), 
+                                 ymin=-1, ymax=30, alpha=.1,fill="blue") + 
+                        annotate("rect", xmin=as.POSIXct(as.Date("2017-01-11")), xmax=as.POSIXct(as.Date("2017-01-14")), 
+                                 ymin=-1, ymax=30, alpha=.1,fill="blue") 
+        
+        multiplot(g.Mean.P1, g.SD.P1, g.NGRate.P1, g.qty.P1, cols=1)
+```
+
+***
+
+### Observation - leak rate in 03~06/Jan/17
+
+```{r,  fig.width=10, fig.height=12, echo=FALSE}
+
+```
