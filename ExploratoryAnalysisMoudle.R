@@ -412,6 +412,35 @@ RemoveDuplicates.KeepLatest = function(dt) {
           return(dt)
 }
 
+Sum.Stat.AirDecay.WP = function(dt, Date.Start, Date.End) {
+  
+  ## Test Variables
+  # dt <- dt.AirDecay.WP.NoMaster
+  # Date.Start <- as.Date("2017-01-15")
+  # Date.End <- as.Date("2017-01-20")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  ## Summarize statics data by gourp. All duplicates will be removed before summary.
+
+  #Remove duplicates and only keep the latest result of the same part
+  dt <- dt[ , .SD[.N] ,  by = c("part_id") ]
+  
+  #sort in oredr of test date
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  dt <- dt %>%
+    group_by(CastMC_Die) %>%
+    summarize(Qty = n(),
+              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              Avg.LeakRate = mean(air_decay_wp), 
+              Stdev.LeakRate = sd(air_decay_wp)
+    )
+  
+  
+  return(dt) 
+}
+
 
 Hourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   

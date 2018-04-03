@@ -243,3 +243,12 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
         
         multiplot(g.LeakRate.WP.P2, g.LeakRate.Master.WP.P2, cols=1)
         
+##############################################################################################
+############ Stat summary by group
+        tab.AirDecay.WP.NoMaster <- Sum.Stat.AirDecay.WP(dt.AirDecay.WP.NoMaster, as.Date("2017-01-15"), as.Date("2017-01-20"))
+        
+        
+        
+        
+        
+    
