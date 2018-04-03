@@ -112,6 +112,8 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
         dt.P1 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-01") 
                                       & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-29") ,]
         
+        Sum.Stat.AirDecay.WP(dt.P1)
+        
         dt.Hourly.Statics.P1 <- Hourly.Statics.AirDecay.WP(dt.P1, -3, 2.1 )
         
         g.Mean.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Avg.LeakRate", 0, -3, 2.1,
@@ -173,82 +175,89 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
 
         dt.LeakRate.WP.P2 <- dt.LeakRate.WP.P2[order(dt.LeakRate.WP.P2$LeakTestDateTime, decreasing = FALSE),]
         
-        # Plot Leak Rate Chart
-        g.LeakRate.WP.P2 <- Plot.SinglePoint.WP.ControlChart(dt.LeakRate.WP.P2, 0, -3, 2.1, "Leak Rate WP - 03~06/JAN/2017")
+        Sum.Stat.AirDecay.WP(dt.LeakRate.WP.P2)
         
-        # Tidy Master Part Leak Data
-        dt.LeakRate.Master.WP.P2 <- dt.AirDecay.WP.Master[date(dt.AirDecay.WP.Master$LeakTestDateTime) >= as.Date("2017-01-03") 
-                                                     & date(dt.AirDecay.WP.Master$LeakTestDateTime) <= as.Date("2017-01-06") 
-                                                     & dt.AirDecay.WP.Master$part_id == "XBA1601290101A23",]
-        dt.LeakRate.Master.WP.P2 <- dt.LeakRate.Master.WP.P2[order(dt.LeakRate.Master.WP.P2$LeakTestDateTime, decreasing = FALSE),]
+        # Plot leka rate chart combined with Master Part Data
+        g.LeakRate.WP.P2 <- Plot.SinglePoint.WP.ControlChart.CombinedMaster(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
+                                                                            "Leak Rate WP - 03~06/JAN/2017", dt.AirDecay.WP.Master, "XBA1601290101A23", 
+                                                                            as.Date("2017-01-03"), as.Date("2017-01-06") )
         
-        # Plot Master Leak Rate into previous leak rate chart
-        g.LeakRate.WP.P2 <- g.LeakRate.WP.P2 + geom_point(data = dt.LeakRate.Master.WP.P2, aes(LeakTestDateTime, air_decay_wp), color = 'red', size = 5)
-          
+        # Plot Leak Rate Chart by cast date / time
+        g.LeakRate.CastDate.WP.P2 <- Plot.SinglePoint.WP.ControlChart.CastTime(dt.LeakRate.WP.P3, 0, -3, 2.1, "WP - 03~06/JAN/2017")
+        
         # Tidy humidity and Temp data
         # 
         
-        # Tidy Cast Date Data
-        usl = 2.1
-        lsl = -3
-        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp > usl | dt.LeakRate.WP.P2$air_decay_wp < lsl, Result := as.factor("FAIL")]
-        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp <= usl & dt.LeakRate.WP.P2$air_decay_wp >= lsl, Result := as.factor("PASS")]
+        # # Tidy Cast Date Data
+        # usl = 2.1
+        # lsl = -3
+        # dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp > usl | dt.LeakRate.WP.P2$air_decay_wp < lsl, Result := as.factor("FAIL")]
+        # dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp <= usl & dt.LeakRate.WP.P2$air_decay_wp >= lsl, Result := as.factor("PASS")]
+        # 
+        # dt.30min.Statics.WP.P2 <- HalfHourly.Statics.AirDecay.WP(dt.LeakRate.WP.P2, -3, 2.1)
+        # 
+        # g.Hst.CastDate <- ggplot(dt.LeakRate.WP.P2, aes(x=CastDate, fill = Result, color=Result)) +
+        #                   geom_histogram(binwidth = 1, position="identity", alpha=0.5) + 
+        #                   ggtitle(paste("QUK2 SH WJ WP Air Decay Pass/Fail Histogram - Cast Date" ))
         
-        dt.30min.Statics.WP.P2 <- HalfHourly.Statics.AirDecay.WP(dt.LeakRate.WP.P2, -3, 2.1)
         
-        g.Hst.CastDate <- ggplot(dt.LeakRate.WP.P2, aes(x=CastDate, fill = Result, color=Result)) +
-                          geom_histogram(binwidth = 1, position="identity", alpha=0.5) + 
-                          ggtitle(paste("QUK2 SH WJ WP Air Decay Pass/Fail Histogram - Cast Date" ))
-        
-        
-        multiplot(g.LeakRate.WP.P2, g.LeakRate.Master.WP.P2, cols=1)
+        multiplot(g.LeakRate.WP.P2, g.LeakRate.CastDate.WP.P2, cols=1)
 
 
-        ## Observation #3: 15/JAN ~ 19/JAN 2017: leak rate cyclic variation
+
+
+## Observation #3: 15/JAN ~ 19/JAN 2017: leak rate cyclic variation
         
         # Tidy Leak Rate Data
         # Duplicates was included
         dt.LeakRate.WP.P3 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-15") 
                                                      & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-20") ,]
         
-        dt.LeakRate.WP.P3 <- dt.LeakRate.WP.P2[order(dt.LeakRate.WP.P2$LeakTestDateTime, decreasing = FALSE),]
+        dt.LeakRate.WP.P3 <- dt.LeakRate.WP.P3[order(dt.LeakRate.WP.P3$LeakTestDateTime, decreasing = FALSE),]
         
-        # Plot Leak Rate Chart
-        g.LeakRate.WP.P3 <- Plot.SinglePoint.WP.ControlChart(dt.LeakRate.WP.P3, 0, -3, 2.1, "Leak Rate WP - 15~19/JAN/2017")
+        # Basic Statics
+        Sum.Stat.AirDecay.WP(dt.LeakRate.WP.P3)
         
-        # Tidy Master Part Leak Data
-        dt.LeakRate.Master.WP.P3 <- dt.AirDecay.WP.Master[date(dt.AirDecay.WP.Master$LeakTestDateTime) >= as.Date("2017-01-15") 
-                                                          & date(dt.AirDecay.WP.Master$LeakTestDateTime) <= as.Date("2017-01-20") 
-                                                          & dt.AirDecay.WP.Master$part_id == "XBA1601290101A23",]
-        dt.LeakRate.Master.WP.P3 <- dt.LeakRate.Master.WP.P3[order(dt.LeakRate.Master.WP.P3$LeakTestDateTime, decreasing = FALSE),]
+        # Plot leka rate chart combined with Master Part Data
+        g.LeakRate.WP.P3 <- Plot.SinglePoint.WP.ControlChart.CombinedMaster(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
+                                                                            "Leak Rate WP - 15~19/JAN/2017", dt.AirDecay.WP.Master, "XBA1601290101A23", 
+                                                                            as.Date("2017-01-15"), as.Date("2017-01-19") )
         
-        # Plot Master Leak Rate into previous leak rate chart
-        g.LeakRate.WP.P3 <- g.LeakRate.WP.P3 + geom_point(data = dt.LeakRate.Master.WP.P3, aes(LeakTestDateTime, air_decay_wp), color = 'red', size = 5)
+        # Plot Leak Rate Chart by cast date / time
+        g.LeakRate.CastDate.WP.P3 <- Plot.SinglePoint.WP.ControlChart.CastTime(dt.LeakRate.WP.P3, 0, -3, 2.1, "WP - 15~19/JAN/2017")
+        
         
         # Tidy humidity and Temp data
         # 
         
-        # Tidy Cast Date Data
-        usl = 2.1
-        lsl = -3
-        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp > usl | dt.LeakRate.WP.P2$air_decay_wp < lsl, Result := as.factor("FAIL")]
-        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp <= usl & dt.LeakRate.WP.P2$air_decay_wp >= lsl, Result := as.factor("PASS")]
-        
-        dt.30min.Statics.WP.P2 <- HalfHourly.Statics.AirDecay.WP(dt.LeakRate.WP.P2, -3, 2.1)
-        
-        g.Hst.CastDate <- ggplot(dt.LeakRate.WP.P2, aes(x=CastDate, fill = Result, color=Result)) +
-          geom_histogram(binwidth = 1, position="identity", alpha=0.5) + 
-          ggtitle(paste("QUK2 SH WJ WP Air Decay Pass/Fail Histogram - Cast Date" ))
         
         
-        multiplot(g.LeakRate.WP.P2, g.LeakRate.Master.WP.P2, cols=1)
-        
-##############################################################################################
-############ Stat summary by group
-        tab.AirDecay.WP.NoMaster <- Sum.Stat.AirDecay.WP(dt.AirDecay.WP.NoMaster, as.Date("2017-01-15"), as.Date("2017-01-20"))
+        multiplot(g.LeakRate.WP.P3, g.LeakRate.CastDate.WP.P3, cols=1)        
         
         
         
+## Observation #4: 27/JAN ~ 29/JAN 2017: High Variation & Reject Rate
+        
+        # Tidy Leak Rate Data
+        # Duplicates was included
+        dt.LeakRate.WP.P4 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-27") 
+                                                     & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-29") ,]
+        
+        dt.LeakRate.WP.P4 <- dt.LeakRate.WP.P4[order(dt.LeakRate.WP.P4$LeakTestDateTime, decreasing = FALSE),]
+        
+        # Basic Statics
+        Sum.Stat.AirDecay.WP(dt.LeakRate.WP.P4)
+        
+        # Plot leka rate chart combined with Master Part Data
+        g.LeakRate.WP.P4 <- Plot.SinglePoint.WP.ControlChart.CombinedMaster(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
+                                                                            "Leak Rate WP - 27~29/JAN/2017", dt.AirDecay.WP.Master, "XBA1601290101A23", 
+                                                                            as.Date("2017-01-27"), as.Date("2017-01-29") )
+        
+        # Plot Leak Rate Chart by cast date / time
+        g.LeakRate.CastDate.WP.P4 <- Plot.SinglePoint.WP.ControlChart.CastTime(dt.LeakRate.WP.P4, 0, -3, 2.1, "WP - 27~29/JAN/2017")
+        
+        
+        multiplot(g.LeakRate.WP.P4, g.LeakRate.CastDate.WP.P4, cols=1)
         
         
     

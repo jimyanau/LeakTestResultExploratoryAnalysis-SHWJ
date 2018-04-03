@@ -157,10 +157,17 @@ Subset data from "2017-01-11" to "2017-01-29" for observation. Ploted the hourly
 * 03~06 JAN 2017;
 * 11~13 JAN 2017;
 
-```{r,  fig.width=10, fig.height=12, echo=FALSE}
+The basics statics of this dataset is present as below:
+```{r, echo=FALSE}
         dt.P1 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-01") 
                                       & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-29") ,]
+
+        Sum.Stat.AirDecay.WP(dt.P1)
         
+```
+
+
+```{r,  fig.width=10, fig.height=12, echo=FALSE}
         dt.Hourly.Statics.P1 <- Hourly.Statics.AirDecay.WP(dt.P1, -3, 2.1 )
         
         g.Mean.P1 <- Plot.LineChart.Hour(dt.Hourly.Statics.P1, "HourDate", "Avg.LeakRate", 0, -3, 2.1,
