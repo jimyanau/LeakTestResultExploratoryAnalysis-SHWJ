@@ -148,6 +148,54 @@ Extract.TempHumidity = function(InputFile) {
   
 }
 
+Process.LeakTest.Result.WP = function(dt) {
+      ## Add additional column of leak test result baed on spec
+  
+      lsl = -3
+      usl = 2.1
+  
+      #calculate test result
+      dt[dt$air_decay_wp > usl | dt$air_decay_wp < lsl, Result := as.factor("FAIL")]
+      dt[dt$air_decay_wp <= usl & dt$air_decay_wp >= lsl, Result := as.factor("PASS")]
+  
+      #sort in oredr of test date
+      dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+
+      return(dt) 
+}
+
+Process.LeakTest.Result.MC = function(dt) {
+  ## Add additional column of leak test result baed on spec
+  
+  lsl = -6
+  usl = 6
+  
+  #calculate test result
+  dt[dt$air_decay_mc > usl | dt$air_decay_mc < lsl, Result := as.factor("FAIL")]
+  dt[dt$air_decay_mc <= usl & dt$air_decay_mc >= lsl, Result := as.factor("PASS")]
+  
+  #sort in oredr of test date
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  return(dt) 
+}
+
+Process.LeakTest.Result.He = function(dt) {
+  ## Add additional column of leak test result baed on spec
+  
+  lsl = 0
+  usl = 3.0E-6
+  
+  #calculate test result
+  dt[dt$helium_test > usl | dt$helium_test < lsl, Result := as.factor("FAIL")]
+  dt[dt$helium_test <= usl & dt$helium_test >= lsl, Result := as.factor("PASS")]
+  
+  #sort in oredr of test date
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  return(dt) 
+}
+
 Process.LeakTest.Data = function(dt) {
         ## Process leak test data. 
         ## Assemble casting date / time based on barcode. Records with incorrect barcode will be dropped.
@@ -402,6 +450,45 @@ Hourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   
   return(dt) 
 }
+
+HalfHourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
+  
+  ## Summarize statics data by gourp. All duplicates will be removed before summary.
+  
+  # #test variable
+  # dt.source <- dt.good
+  # lsl = -3
+  # usl = 2.1
+  
+  #Remove duplicates
+  dt.source <- dt.source[ , .SD[.N] ,  by = c("part_id") ]
+  
+  #sort in oredr of test date
+  dt.source <- dt.source[order(dt.source$LeakTestDateTime, decreasing = FALSE),]
+  
+  #calculate test result
+  dt.source[dt.source$air_decay_wp > usl | dt.source$air_decay_wp < lsl, Result := as.factor("FAIL")]
+  dt.source[dt.source$air_decay_wp <= usl & dt.source$air_decay_wp >= lsl, Result := as.factor("PASS")]
+  
+  
+  dt <- dt.source %>%
+    group_by(HourDate=floor_date(LeakTestDateTime, "30 minute")) %>%
+    summarize(Qty = n(),
+              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              Avg.LeakRate = mean(air_decay_wp), 
+              Stdev.LeakRate = sd(air_decay_wp),
+              Max.LeakRate = max(air_decay_wp), 
+              Min.LeakRate = min(air_decay_wp),
+              Range.LeakRate = (Max.LeakRate - Min.LeakRate)
+    )
+  
+  #Remove NA of Stdev due to low qty (count=1)
+  dt <- dt[complete.cases(dt),]
+  
+  
+  return(dt) 
+}
+
 
 Plot.LineChart.Year = function(dt, VARx, VARy, nominal, lsl, usl, Mean, Sigma, Title) {
   # #Var for testing

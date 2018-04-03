@@ -18,6 +18,8 @@ dt.AirDecay.WP.Master <- readRDS("DataOutput/dt.AirDecay.WP.Master.RDS")
 dt.TempHumidity <- readRDS("DataOutput/dt.TempHumidity.RDS")
 # dt.Inspection.Full <- readRDS("DataOutput/dt.Inspection.Full.RDS")
 
+### All duplicates were not removed up to this stage ###
+
 
 ## Check data summary
 summarizeColumns(dt.AirDecay.WP.NoMaster)
@@ -25,6 +27,7 @@ summarizeColumns(dt.AirDecay.WP.NoMaster)
 dt.AirDecay.WP.NoMaster <- dt.AirDecay.WP.NoMaster[complete.cases(dt.AirDecay.WP.NoMaster),]
 ## Check data summary
 summarizeColumns(dt.AirDecay.WP.NoMaster)
+
 
 ## Remove duplicates, calculate leak test result based on supplied spec.
 ## Run statics on data on daily basis.
@@ -164,6 +167,7 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
 ## Observation #2: 03/JAN ~ 06/JAN 2017: High variation on leak rate and reject rate
 
         # Tidy Leak Rate Data
+        # Duplicates was included
         dt.LeakRate.WP.P2 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-03") 
                                          & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-06") ,]
 
@@ -178,8 +182,64 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
                                                      & dt.AirDecay.WP.Master$part_id == "XBA1601290101A23",]
         dt.LeakRate.Master.WP.P2 <- dt.LeakRate.Master.WP.P2[order(dt.LeakRate.Master.WP.P2$LeakTestDateTime, decreasing = FALSE),]
         
+        # Plot Master Leak Rate into previous leak rate chart
+        g.LeakRate.WP.P2 <- g.LeakRate.WP.P2 + geom_point(data = dt.LeakRate.Master.WP.P2, aes(LeakTestDateTime, air_decay_wp), color = 'red', size = 5)
+          
+        # Tidy humidity and Temp data
+        # 
+        
+        # Tidy Cast Date Data
+        usl = 2.1
+        lsl = -3
+        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp > usl | dt.LeakRate.WP.P2$air_decay_wp < lsl, Result := as.factor("FAIL")]
+        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp <= usl & dt.LeakRate.WP.P2$air_decay_wp >= lsl, Result := as.factor("PASS")]
+        
+        dt.30min.Statics.WP.P2 <- HalfHourly.Statics.AirDecay.WP(dt.LeakRate.WP.P2, -3, 2.1)
+        
+        g.Hst.CastDate <- ggplot(dt.LeakRate.WP.P2, aes(x=CastDate, fill = Result, color=Result)) +
+                          geom_histogram(binwidth = 1, position="identity", alpha=0.5) + 
+                          ggtitle(paste("QUK2 SH WJ WP Air Decay Pass/Fail Histogram - Cast Date" ))
         
         
+        multiplot(g.LeakRate.WP.P2, g.LeakRate.Master.WP.P2, cols=1)
+
+
+        ## Observation #3: 15/JAN ~ 19/JAN 2017: leak rate cyclic variation
+        
+        # Tidy Leak Rate Data
+        # Duplicates was included
+        dt.LeakRate.WP.P3 <- dt.AirDecay.WP.NoMaster[date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) >= as.Date("2017-01-15") 
+                                                     & date(dt.AirDecay.WP.NoMaster$LeakTestDateTime) <= as.Date("2017-01-20") ,]
+        
+        dt.LeakRate.WP.P3 <- dt.LeakRate.WP.P2[order(dt.LeakRate.WP.P2$LeakTestDateTime, decreasing = FALSE),]
+        
+        # Plot Leak Rate Chart
+        g.LeakRate.WP.P3 <- Plot.SinglePoint.WP.ControlChart(dt.LeakRate.WP.P3, 0, -3, 2.1, "Leak Rate WP - 15~19/JAN/2017")
+        
+        # Tidy Master Part Leak Data
+        dt.LeakRate.Master.WP.P3 <- dt.AirDecay.WP.Master[date(dt.AirDecay.WP.Master$LeakTestDateTime) >= as.Date("2017-01-15") 
+                                                          & date(dt.AirDecay.WP.Master$LeakTestDateTime) <= as.Date("2017-01-20") 
+                                                          & dt.AirDecay.WP.Master$part_id == "XBA1601290101A23",]
+        dt.LeakRate.Master.WP.P3 <- dt.LeakRate.Master.WP.P3[order(dt.LeakRate.Master.WP.P3$LeakTestDateTime, decreasing = FALSE),]
+        
+        # Plot Master Leak Rate into previous leak rate chart
+        g.LeakRate.WP.P3 <- g.LeakRate.WP.P3 + geom_point(data = dt.LeakRate.Master.WP.P3, aes(LeakTestDateTime, air_decay_wp), color = 'red', size = 5)
+        
+        # Tidy humidity and Temp data
+        # 
+        
+        # Tidy Cast Date Data
+        usl = 2.1
+        lsl = -3
+        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp > usl | dt.LeakRate.WP.P2$air_decay_wp < lsl, Result := as.factor("FAIL")]
+        dt.LeakRate.WP.P2[dt.LeakRate.WP.P2$air_decay_wp <= usl & dt.LeakRate.WP.P2$air_decay_wp >= lsl, Result := as.factor("PASS")]
+        
+        dt.30min.Statics.WP.P2 <- HalfHourly.Statics.AirDecay.WP(dt.LeakRate.WP.P2, -3, 2.1)
+        
+        g.Hst.CastDate <- ggplot(dt.LeakRate.WP.P2, aes(x=CastDate, fill = Result, color=Result)) +
+          geom_histogram(binwidth = 1, position="identity", alpha=0.5) + 
+          ggtitle(paste("QUK2 SH WJ WP Air Decay Pass/Fail Histogram - Cast Date" ))
         
         
+        multiplot(g.LeakRate.WP.P2, g.LeakRate.Master.WP.P2, cols=1)
         

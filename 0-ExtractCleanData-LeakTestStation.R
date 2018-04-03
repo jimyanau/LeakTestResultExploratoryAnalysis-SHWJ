@@ -35,6 +35,7 @@ Extract.InspectionData(File.Inspection)
 ## Convert part ID into upper cases
 ## Assemble casting date / time based on barcode. Records with incorrect barcode format will be dropped.
 ## Convert some columns into factor
+## Calculate leak test result
 ## subset Master Part Data into separated datasets
 dt.AirDecay.WP.Full <- readRDS("DataOutput/dt.AirDecay.WP.Full.RDS")
 dt.AirDecay.MC.Full <- readRDS("DataOutput/dt.AirDecay.MC.Full.RDS")
@@ -44,6 +45,12 @@ dt.AirDecay.WP.NoMaster <- Process.LeakTest.Data(dt.AirDecay.WP.Full)
 dt.AirDecay.MC.NoMaster <- Process.LeakTest.Data(dt.AirDecay.MC.Full)
 dt.AirDecay.He.NoMaster <- Process.LeakTest.Data(dt.AirDecay.He.Full)
 
+
+## Calculate leak test result
+dt.AirDecay.WP.NoMaster <- Process.LeakTest.Result.WP(dt.AirDecay.WP.NoMaster)
+dt.AirDecay.MC.NoMaster <- Process.LeakTest.Result.MC(dt.AirDecay.MC.NoMaster)
+dt.AirDecay.He.NoMaster <- Process.LeakTest.Result.He(dt.AirDecay.He.NoMaster)
+  
 saveRDS(dt.AirDecay.WP.NoMaster, "DataOutput/dt.AirDecay.WP.NoMaster.RDS")
 saveRDS(dt.AirDecay.MC.NoMaster, "DataOutput/dt.AirDecay.MC.NoMaster.RDS")
 saveRDS(dt.AirDecay.He.NoMaster, "DataOutput/dt.AirDecay.He.NoMaster.RDS")
@@ -56,6 +63,11 @@ saveRDS(dt.AirDecay.He.NoMaster, "DataOutput/dt.AirDecay.He.NoMaster.RDS")
 dt.AirDecay.WP.Master <- Process.LeakTest.Master.Data(dt.AirDecay.WP.Full)
 dt.AirDecay.MC.Master <- Process.LeakTest.Master.Data(dt.AirDecay.MC.Full)
 dt.AirDecay.He.Master <- Process.LeakTest.Master.Data(dt.AirDecay.He.Full)
+
+## Calculate leak test result
+dt.AirDecay.WP.Master <- Process.LeakTest.Result.WP(dt.AirDecay.WP.Master)
+dt.AirDecay.MC.Master <- Process.LeakTest.Result.MC(dt.AirDecay.MC.Master)
+dt.AirDecay.He.Master <- Process.LeakTest.Result.He(dt.AirDecay.He.Master)
 
 saveRDS(dt.AirDecay.WP.Master, "DataOutput/dt.AirDecay.WP.Master.RDS")
 saveRDS(dt.AirDecay.MC.Master, "DataOutput/dt.AirDecay.MC.Master.RDS")
