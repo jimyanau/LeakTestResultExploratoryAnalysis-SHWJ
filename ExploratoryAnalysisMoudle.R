@@ -1021,8 +1021,9 @@ Plot.SinglePoint.WP.ControlChart.CombinedMaster = function(dt, nominal, lsl, usl
   dt <- dt[date(dt$LeakTestDateTime) >= Date.Start 
                          & date(dt$LeakTestDateTime) <= Date.End, ]
   
-  g.LT <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_wp)) +
-                  geom_line()+
+  g.LT <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_wp, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
+                  scale_color_brewer(palette="Dark2") +
+                  # geom_line()+
                   geom_point()+
                   # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
                   geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
@@ -1047,6 +1048,41 @@ Plot.SinglePoint.WP.ControlChart.CombinedMaster = function(dt, nominal, lsl, usl
   return(g.LT)
 }
 
+
+Plot.SinglePoint.WP.Type1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part
+  ## 3) Plot leak rate trend as per casting date
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.WP <- Plot.SinglePoint.WP.ControlChart.CombinedMaster(dt, nominal, lsl, usl, 
+                     Title, dt.Master, ID.Master, 
+                     Date.Start, Date.End )
+
+  # Plot Leak Rate Chart by cast date / time
+  g.LeakRate.CastDate.WP <- Plot.SinglePoint.WP.ControlChart.CastTime(dt, nominal, lsl, usl, Title)
+  
+  
+  multiplot(g.LeakRate.WP, g.LeakRate.CastDate.WP, cols=1)
+
+}
 
 Plot.SinglePoint.WP.ControlChart.CastTime = function(dt, nominal, lsl, usl, Title){
   # #Var for testing
