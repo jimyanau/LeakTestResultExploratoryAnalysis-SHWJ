@@ -1053,6 +1053,51 @@ Plot.SinglePoint.WP.ControlChart.CombinedMaster = function(dt, nominal, lsl, usl
 }
 
 
+Plot.SinglePoint.WP.ControlChart.SmallScale.CombinedMaster = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2018-01-15")
+  # Date.End = as.Date("2018-01-20")
+  
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start 
+           & date(dt$LeakTestDateTime) <= Date.End, ]
+  
+  g.LT <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_wp, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
+    scale_color_brewer(palette="Dark2") +
+    geom_line()+
+    geom_point()+
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
+    geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=nominal, colour = 'Nominal' ),  linetype='solid', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +             
+    xlab("Date/Time") +
+    ylab("Leak Rate") +
+    scale_y_continuous(limits = c(-4, 3)) + 
+    ggtitle(paste("QUK2 SH WJ Leak Rate - ", Title )) +
+    scale_x_datetime(expand = c(0, 0), date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  # subset master part data
+  dt.Master <- dt.Master[date(dt.Master$LeakTestDateTime) >= Date.Start 
+                         & date(dt.Master$LeakTestDateTime) <= Date.End 
+                         & dt.Master$part_id == ID.Master, ]
+  dt.Master <- dt.Master[order(dt.Master$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot Master Leak Rate into previous leak rate chart
+  g.LT <- g.LT + geom_point(data = dt.Master, aes(LeakTestDateTime, air_decay_wp, shape=part_id), color = 'red', size = 5)
+  
+  
+  return(g.LT)
+}
+
+
 Plot.SinglePoint.WP.Type1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
   ## This function is to 
@@ -1129,6 +1174,47 @@ Plot.SinglePoint.WP.Type2 = function(dt, nominal, lsl, usl, Title, dt.Master, ID
 }
 
 
+Plot.SinglePoint.WP.Type3 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part. 
+  ##      The leak rate will be ploted at small scale for better observation.
+  ## 3) Plot leak rate trend as per casting date
+  ## 4) Plot Temperatur and Humidity trend at the same period of time
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.WP <- Plot.SinglePoint.WP.ControlChart.SmallScale.CombinedMaster(dt, nominal, lsl, usl, 
+                                                                   Title, dt.Master, ID.Master, 
+                                                                   Date.Start, Date.End )
+  
+  # Plot Leak Rate Chart by cast date / time
+  g.LeakRate.CastDate.WP <- Plot.SinglePoint.WP.ControlChart.CastTime(dt, nominal, lsl, usl, Title)
+  
+  # Plot Temp and Humidity trend
+  g.Temp <- Plot.SinglePoint.Temp(dt.TempHumidity, "Assembly Cell Temp Trend",Date.Start, Date.End)
+  g.Humidity <- Plot.SinglePoint.Humidity(dt.TempHumidity, "Assembly Cell Humidity Trend",Date.Start, Date.End)
+  
+  
+  multiplot(g.LeakRate.WP, g.Temp, g.Humidity, g.LeakRate.CastDate.WP, cols=1)
+  
+}
+
 Plot.SinglePoint.Temp = function(dt, Title, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
   ## This function is to plot the trend of temp and humidity of the assembly Cell
@@ -1146,7 +1232,7 @@ Plot.SinglePoint.Temp = function(dt, Title, Date.Start = as.Date("2016-01-01"), 
   g <- ggplot(dt, aes(x = dt$Date.Time, y=dt$Temperature, shape="Temperature"), colour='red') +
     geom_line()+
     geom_point()+
-    stat_smooth(aes(x=dt$Date.Time, y=dt$Temperature), formula = y ~ s(x, k = 24), method = "gam", se = FALSE) +
+    # stat_smooth(aes(x=dt$Date.Time, y=dt$Temperature), formula = y ~ s(x, k = 24), method = "gam", se = FALSE) +
     xlab("Date/Time") +
     ylab("Temperature") +
     ggtitle(paste(Title, " ", Date.Start,"-", Date.End )) +
@@ -1176,7 +1262,7 @@ Plot.SinglePoint.Humidity = function(dt, Title, Date.Start = as.Date("2016-01-01
   g <- ggplot(dt, aes(x = dt$Date.Time, y=dt$RelativeHumidity, shape="Humidity"), colour='blue') +
     geom_line()+
     geom_point()+
-    stat_smooth(aes(x=dt$Date.Time, y=dt$RelativeHumidity), formula = y ~ s(x, k = 24), method = "gam", se = FALSE) +
+    # stat_smooth(aes(x=dt$Date.Time, y=dt$RelativeHumidity), formula = y ~ s(x, k = 24), method = "gam", se = FALSE) +
     xlab("Date/Time") +
     ylab("Humidity") +
     ggtitle(paste(Title, " ", Date.Start,"-", Date.End )) +
