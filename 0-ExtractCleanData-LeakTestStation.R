@@ -7,9 +7,11 @@ Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr"
 
 Install_And_Load(Required_Packages)
 
+#Setup File Names
 File.LeakTestStation <- c("DataSource/QUK2SH_WJ_Leak_Rate.tsv")
 File.TempHumidity <- c("DataSource/TempRecord.tsv")
 File.Inspection <- c("DataSource/GateInspection2017-18.tsv")
+File.Pinning <- c("DataSource/QUK2SH_WJ_Pinning.tsv")
 
 ##################################################################################################################
 ## Extract raw data from tsv file. 
@@ -29,6 +31,12 @@ Extract.TempHumidity(File.TempHumidity)
 ## data was saved as "DataOutput/dt.Inspection.Full.RDS"
 ## Duplicates was not removed
 Extract.InspectionData(File.Inspection)
+
+
+## Extract data from Pinning Station
+## Duplicates was not removed
+## data was saved as "DataOutput/dt.Pinning.RDS"
+Extract.PinningStation(File.Pinning)
 
 
 ## Process leak test data. 

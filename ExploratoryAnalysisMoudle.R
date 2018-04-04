@@ -152,6 +152,50 @@ Extract.TempHumidity = function(InputFile) {
   
 }
 
+Extract.PinningStation = function(InputFile) {
+  
+  ## Extract raw data from tsv file. 
+  ## All processed data include duplicates and was sorted in order of time/part_id. Row contained NA was removed.  
+  ## Duplicates was included here
+  
+  # #test variable
+  # InputFile <- c("DataSource/QUK2SH_WJ_Pinning.tsv")
+  
+  #Read TSV file
+  dt <- read.table(InputFile, sep = '\t', header = TRUE, stringsAsFactors = FALSE)
+  
+  #Convert to data table
+  dt <- data.table(dt)
+  
+  #Keep only XBA parts
+  dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
+  
+  #Assemble Date/Time
+  dt$PinningDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
+  
+  #sort in oredr of part id then test date
+  dt <- dt[order(dt$part_id, dt$PinningDateTime, decreasing = FALSE),]
+  
+  saveRDS(dt, "DataOutput/dt.Pinning.RDS")        
+  
+}
+
+KeepOldestRecord.PinningStation = function(dt) {
+  
+  ## This function is to removed duplicates by keeping only the oldest record of each part id.
+  
+  # Sort as per order of part id, then time. 
+  # Keep only the earliest record of the same part ID
+  dt <- dt[order(dt$part_id, dt$PinningDateTime,  decreasing = FALSE),]
+  dt <- dt[!duplicated(dt$part_id),]
+  
+  #sort in oredr of part id then test date
+  dt <- dt[order(dt$part_id, dt$PinningDateTime, decreasing = FALSE),]
+  
+  return(dt)
+  
+}
+
 Process.LeakTest.Result.WP = function(dt) {
       ## Add additional column of leak test result baed on spec
   
@@ -1173,6 +1217,41 @@ Plot.SinglePoint.WP.Type2 = function(dt, nominal, lsl, usl, Title, dt.Master, ID
   
 }
 
+
+Plot.SinglePoint.WP.SmallScale.Type1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time within small scale, 
+  ## 2) then plot the leak rate of individual parts and master part
+  ## 3) Plot leak rate trend as per casting date
+  ## 4) Plot Temperatur and Humidity trend at the same period of time
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.WP <- Plot.SinglePoint.WP.ControlChart.SmallScale.CombinedMaster(dt, nominal, lsl, usl, 
+                                                                   Title, dt.Master, ID.Master, 
+                                                                   Date.Start, Date.End )
+  
+  # Plot Leak Rate Chart by cast date / time
+  g.LeakRate.CastDate.WP <- Plot.SinglePoint.WP.ControlChart.CastTime(dt, nominal, lsl, usl, Title)
+
+  multiplot(g.LeakRate.WP, g.LeakRate.CastDate.WP, cols=1)
+  
+}
 
 Plot.SinglePoint.WP.Type3 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
