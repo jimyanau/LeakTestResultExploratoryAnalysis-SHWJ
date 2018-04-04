@@ -74,7 +74,7 @@ saveRDS(dt.AirDecay.He.NoMaster, "DataOutput/dt.AirDecay.He.NoMaster.RDS")
 ## Extract data of master parts for comparison
 ## Assemble casting date / time based on barcode. Records with incorrect barcode format will be dropped.
 ## Convert some columns into factor
-## Only record with part id in tge master part list were kept
+## Only record with part id in the master part list were kept
 dt.AirDecay.WP.Master <- Process.LeakTest.Master.Data(dt.AirDecay.WP.Full)
 dt.AirDecay.MC.Master <- Process.LeakTest.Master.Data(dt.AirDecay.MC.Full)
 dt.AirDecay.He.Master <- Process.LeakTest.Master.Data(dt.AirDecay.He.Full)

@@ -207,10 +207,13 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
         
         # Tidy Leak Rate Data
         # Duplicates was included
-        Plot.SinglePoint.WP.Type2(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
+        Plot.SinglePoint.WP.Type3(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
                                   " WP - 27~29/JAN/2017", dt.AirDecay.WP.Master, "XBA1601290101A23", 
                                   as.Date("2017-01-27"), as.Date("2017-01-29") )
         
+        Plot.SinglePoint.WP.SmallScale.Type1(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
+                                  " WP - 27~29/JAN/2017", dt.AirDecay.WP.Master, "XBA1601290101A23", 
+                                  as.Date("2017-01-27"), as.Date("2017-01-29") )
  
 
 ## Observation #5: 1/APR ~ 12/APR 2017: High Variation & Reject Rate
@@ -231,3 +234,9 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
         Plot.SinglePoint.WP.SmallScale.Type1(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
                                   " WP - 15~20/JAN/2018", dt.AirDecay.WP.Master, "XBA1601290101A23", 
                                   as.Date("2018-01-15"), as.Date("2018-01-20") )
+        
+        
+        Plot.SinglePoint.WP.SmallScale.Type1(dt.AirDecay.WP.NoMaster, 0, -3, 2.1, 
+                                             " WP - 15~20/JAN/2018", dt.AirDecay.WP.Master, "XBA1601290101A23", 
+                                             as.Date("2018-01-19"), as.Date("2018-01-20") )
+        

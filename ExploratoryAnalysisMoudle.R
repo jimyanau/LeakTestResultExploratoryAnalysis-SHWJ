@@ -117,6 +117,9 @@ Extract.InspectionData = function(InputFile) {
   
   #clean spacer at barcode
   dt[ , part_id := as.character(gsub("    ", "", part_id))]
+  
+  # Convert dat time into correct format
+  dt$datetime <- as.POSIXct(dt$datetime,format="%d/%m/%Y %H:%M")
  
   dt <- dt[order(dt$datetime), ]
  
@@ -500,7 +503,7 @@ Daily.Statics.AirDecay.He = function(dt.source, lsl, usl) {
   return(dt) 
 }
 
-RemoveDuplicates.KeepLatest = function(dt) {
+KeepLatestRecord.AirDecay = function(dt) {
           #Remove duplicates
           dt <- dt[ , .SD[.N] ,  by = c("part_id") ]
           
@@ -509,6 +512,38 @@ RemoveDuplicates.KeepLatest = function(dt) {
   
           return(dt)
 }
+
+KeepOldestRecord.AirDecay = function(dt) {
+  # # Test Variables
+  # dt <- dt.AirDecay.WP.NoMaster
+  
+  # Sort as per order of part id, then time. 
+  # Keep only the earliest record of the same part ID
+  dt <- dt[order(dt$part_id, dt$LeakTestDateTime,  decreasing = FALSE),]
+  dt <- dt[!duplicated(dt$part_id),]
+  
+  #sort in oredr of test date
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  return(dt)
+}
+
+
+KeepOldestRecord.Inspction = function(dt) {
+      # # Test Variables
+      # dt <- dt.Inspection.Gate1
+      
+      # Sort as per order of part id, then time. 
+      # Keep only the earliest record of the same part ID
+      dt <- dt[order(dt$part_id, dt$datetime,  decreasing = FALSE),]
+      dt <- dt[!duplicated(dt$part_id),]
+      
+      #sort in oredr of test date
+      dt <- dt[order(dt$datetime, decreasing = FALSE),]
+  
+  return(dt)
+}
+
 
 Sum.Stat.AirDecay.WP = function(dt, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")) {
   
