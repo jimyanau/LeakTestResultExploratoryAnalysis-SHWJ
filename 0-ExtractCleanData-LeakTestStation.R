@@ -10,7 +10,7 @@ Install_And_Load(Required_Packages)
 #Setup File Names
 File.LeakTestStation <- c("DataSource/QUK2SH_WJ_Leak_Rate.tsv")
 File.TempHumidity <- c("DataSource/TempRecord.tsv")
-File.Inspection <- c("DataSource/GateInspection2017-18.tsv")
+File.Inspection <- c("DataSource/Barcode_Reporting.tsv")
 File.Pinning <- c("DataSource/QUK2SH_WJ_Pinning.tsv")
 File.FIPG <- c("DataSource/QUK2SH_WJ_FIPG_Bolting.tsv")
 

@@ -173,6 +173,9 @@ Extract.PinningStation = function(InputFile) {
   #Keep only XBA parts
   dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
   
+  #clean spacer at barcode
+  dt[ , part_id := as.character(gsub("    ", "", part_id))]
+  
   #Assemble Date/Time
   dt$PinningDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
   
@@ -217,6 +220,9 @@ Extract.FIPGStation = function(InputFile) {
   
   #Keep only XBA parts
   dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
+  
+  #clean spacer at barcode
+  dt[ , part_id := as.character(gsub("    ", "", part_id))]
   
   #Assemble Date/Time
   dt$FIPGDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
