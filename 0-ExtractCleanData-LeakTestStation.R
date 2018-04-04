@@ -12,6 +12,7 @@ File.LeakTestStation <- c("DataSource/QUK2SH_WJ_Leak_Rate.tsv")
 File.TempHumidity <- c("DataSource/TempRecord.tsv")
 File.Inspection <- c("DataSource/GateInspection2017-18.tsv")
 File.Pinning <- c("DataSource/QUK2SH_WJ_Pinning.tsv")
+File.FIPG <- c("DataSource/QUK2SH_WJ_FIPG_Bolting.tsv")
 
 ##################################################################################################################
 ## Extract raw data from tsv file. 
@@ -37,6 +38,12 @@ Extract.InspectionData(File.Inspection)
 ## Duplicates was not removed
 ## data was saved as "DataOutput/dt.Pinning.RDS"
 Extract.PinningStation(File.Pinning)
+
+
+## Extract data from FIPG Station
+## Duplicates was not removed
+## data was saved as "DataOutput/dt.FIPG.RDS"
+Extract.FIPGStation(File.FIPG)
 
 
 ## Process leak test data. 

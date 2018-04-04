@@ -174,7 +174,7 @@ Extract.PinningStation = function(InputFile) {
   dt$PinningDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
   
   #sort in oredr of part id then test date
-  dt <- dt[order(dt$part_id, dt$PinningDateTime, decreasing = FALSE),]
+  dt <- dt[order(dt$PinningDateTime, decreasing = FALSE),]
   
   saveRDS(dt, "DataOutput/dt.Pinning.RDS")        
   
@@ -190,11 +190,61 @@ KeepOldestRecord.PinningStation = function(dt) {
   dt <- dt[!duplicated(dt$part_id),]
   
   #sort in oredr of part id then test date
-  dt <- dt[order(dt$part_id, dt$PinningDateTime, decreasing = FALSE),]
+  dt <- dt[order(dt$PinningDateTime, decreasing = FALSE),]
   
   return(dt)
   
 }
+
+
+Extract.FIPGStation = function(InputFile) {
+  
+  ## Extract raw data from tsv file. 
+  ## All processed data include duplicates and was sorted in order of time/part_id. Row contained NA was removed.  
+  ## Duplicates was included here
+  
+  # #test variable
+  # InputFile <- c("DataSource/QUK2SH_WJ_FIPG_Bolting.tsv")
+  
+  #Read TSV file
+  dt <- read.table(InputFile, sep = '\t', header = TRUE, stringsAsFactors = FALSE)
+  
+  #Convert to data table
+  dt <- data.table(dt)
+  
+  #Keep only XBA parts
+  dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
+  
+  #Assemble Date/Time
+  dt$FIPGDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
+  
+  #sort in oredr of part id then test date
+  dt <- dt[order(dt$FIPGDateTime, decreasing = FALSE),]
+  
+  saveRDS(dt, "DataOutput/dt.FIPG.RDS")        
+  
+}
+
+
+KeepOldestRecord.FIPGStation = function(dt) {
+  
+  ## This function is to removed duplicates by keeping only the oldest record of each part id.
+  
+  # # Test Variables
+  # dt <- dt.FIPG.Full
+  
+  # Sort as per order of part id, then time. 
+  # Keep only the earliest record of the same part ID
+  dt <- dt[order(dt$part_id, dt$FIPGDateTime,  decreasing = FALSE),]
+  dt <- dt[!duplicated(dt$part_id),]
+  
+  #sort in oredr of part id then test date
+  dt <- dt[order(dt$FIPGDateTime, decreasing = FALSE),]
+  
+  return(dt)
+  
+}
+
 
 Process.LeakTest.Result.WP = function(dt) {
       ## Add additional column of leak test result baed on spec
