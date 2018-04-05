@@ -405,7 +405,7 @@ Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
         ## Summarize statics data by gourp. All duplicates will be removed before summary.
   
         # #test variable
-        # dt.source <- dt.AirDecay.WP.Full
+        # dt.source <- dt.AirDecay.WP.NoMaster
         # lsl = -3
         # usl = 2.1
         
@@ -421,7 +421,7 @@ Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
         
  
         dt <- dt.source %>%
-              group_by(Date = date(LeakTestDateTime)) %>%
+              group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
               summarize(Qty = n(),
                         RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
                         Avg.LeakRate = mean(air_decay_wp), 
@@ -460,7 +460,7 @@ Daily.Statics.AirDecay.MC = function(dt.source, lsl, usl) {
   
   
   dt <- dt.source %>%
-    group_by(Date = date(LeakTestDateTime)) %>%
+    group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
     summarize(Qty = n(),
               RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_mc), 
@@ -499,7 +499,7 @@ Daily.Statics.AirDecay.He = function(dt.source, lsl, usl) {
   
   
   dt <- dt.source %>%
-    group_by(Date = date(LeakTestDateTime)) %>%
+    group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
     summarize(Qty = n(),
               RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(helium_test), 
