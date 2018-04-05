@@ -626,6 +626,49 @@ Hourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   return(dt) 
 }
 
+
+Hourly.Statics.AirDecay.Transform.WP = function(dt.source, lsl, usl) {
+  
+  ## Summarize statics data by gourp. All duplicates will be removed before summary.
+  ## We do not need to transform the LSL/USL becsue we are still using orignal leak test value to calculate reject rate
+  
+  # #test variable
+  # dt.source <- dt.AirDecay.WP.NoMaster.sample
+  # lsl = 1/sqrt(-3+3.001)
+  # usl = 1/sqrt(2.1+3.001)
+  
+  #Remove duplicates
+  dt.source <- dt.source[ , .SD[.N] ,  by = c("part_id") ]
+  
+  #sort in oredr of test date
+  dt.source <- dt.source[order(dt.source$LeakTestDateTime, decreasing = FALSE),]
+  
+  #calculate test result
+  ## We can still use original leak test data to calculate reject rate
+  dt.source[dt.source$air_decay_wp > usl | dt.source$air_decay_wp < lsl, Result := as.factor("FAIL")]
+  dt.source[dt.source$air_decay_wp <= usl & dt.source$air_decay_wp >= lsl, Result := as.factor("PASS")]
+  
+  
+  dt <- dt.source %>%
+    group_by(HourDate=floor_date(LeakTestDateTime, "1 hour")) %>%
+    summarize(Qty = n(),
+              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              Avg.LeakRate = mean(transform_AirWP), 
+              Stdev.LeakRate = sd(transform_AirWP),
+              Max.LeakRate = max(transform_AirWP), 
+              Min.LeakRate = min(transform_AirWP),
+              Range.LeakRate = (Max.LeakRate - Min.LeakRate)
+    )
+  
+  #Remove NA of Stdev due to low qty (count=1)
+  dt <- dt[complete.cases(dt),]
+  
+  
+  return(dt) 
+}
+
+
+
 HalfHourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   
   ## Summarize statics data by gourp. All duplicates will be removed before summary.

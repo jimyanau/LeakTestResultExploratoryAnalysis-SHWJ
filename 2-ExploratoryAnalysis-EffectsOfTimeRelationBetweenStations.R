@@ -158,7 +158,7 @@ saveRDS(dt.CompleteProcessTiming.1stRecord, "DataOutput/dt.CompleteProcessTiming
 dt.CompleteProcessTiming.1stRecord <- readRDS("DataOutput/dt.CompleteProcessTiming.1stRecord.RDS")
 
 # Subset Data of 2018 for investigation
-dt.CompleteProcessTiming.1stRecord <- dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$"1st_AirDecay_DateTime" >= as.Date("2018-01-01"),]
+dt.CompleteProcessTiming.1stRecord <- dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$"1st_AirDecay_DateTime" >= as.Date("2017-06-01"),]
 
 ## Plot Disctribution of lead time between FIPG station & Leak Test Station
 g.Mins_FIPG_AirDecay_WP.FAIL <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="FAIL", ], 
