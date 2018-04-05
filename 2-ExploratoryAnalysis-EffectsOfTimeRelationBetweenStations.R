@@ -125,6 +125,18 @@ setnames(dt.CompleteProcessTiming.1stRecord, "defect_code", "300%DefectCode")
 setnames(dt.CompleteProcessTiming.1stRecord, "defect_location", "300%DefectLocation")
 
 
+### Noticed that there was time difference between stations. Working with NCAP to get the difference between machine time and actual time.
+### Inspection Stations had daylight stations
+### Pinning Station, FIPG Station & Leak Test Station had no daylight saving
+### Additional offest need to be adjusted on data as per the observation on machine on 5/APR/2018:
+### -7 mins on Pinning Station Time
+### +6 mins on FIPG Station
+
+# Adjust time difference
+dt.CompleteProcessTiming.1stRecord$PinningDateTime <- dt.CompleteProcessTiming.1stRecord$PinningDateTime - dminutes(7)
+dt.CompleteProcessTiming.1stRecord$FIPGDateTime <- dt.CompleteProcessTiming.1stRecord$FIPGDateTime + dminutes(6)
+
+
 ### Pls notice that the data with missing value in 100% Inspection, Pinning Station, FIPG Station & Air Decay Leak 
 ### Test Station had been removed for investigation purpose. All records were the 1st. record of the same part ID.
 
@@ -133,8 +145,82 @@ dt.CompleteProcessTiming.1stRecord$Mins_IncomingInsp_FIPG <- as.numeric(difftime
 dt.CompleteProcessTiming.1stRecord$Mins_FIPG_AirDecay <- as.numeric(difftime(dt.CompleteProcessTiming.1stRecord$`1st_AirDecay_DateTime`, dt.CompleteProcessTiming.1stRecord$FIPGDateTime), units="mins")
 dt.CompleteProcessTiming.1stRecord$Mins_IncomingInsp_AirDecay <- as.numeric(difftime(dt.CompleteProcessTiming.1stRecord$`1st_AirDecay_DateTime`, dt.CompleteProcessTiming.1stRecord$"100%_Insp_DateTime"), units="mins")
 
-### Noticed that there was time difference between stations. Working with NCAP to get the difference between machine time and actual time.
-### Will add the offset into dataset.
+## Save dataset into "DataOutput/dt.CompleteProcessTiming.1stRecord.RDS"
+saveRDS(dt.CompleteProcessTiming.1stRecord, "DataOutput/dt.CompleteProcessTiming.1stRecord.RDS")
+
+
+
+
+
+
+############ Start Analysis  #####################
+
+dt.CompleteProcessTiming.1stRecord <- readRDS("DataOutput/dt.CompleteProcessTiming.1stRecord.RDS")
+
+# Subset Data of 2018 for investigation
+dt.CompleteProcessTiming.1stRecord <- dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$"1st_AirDecay_DateTime" >= as.Date("2018-01-01"),]
+
+## Plot Disctribution of lead time between FIPG station & Leak Test Station
+g.Mins_FIPG_AirDecay_WP.FAIL <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="FAIL", ], 
+                                       aes(x=Mins_FIPG_AirDecay,fill=`1st_LeakTestResult_WP`)) +
+                                      geom_histogram(binwidth=1, alpha=.5, position="identity", colour='red', fill = 'red') +
+                                      scale_x_continuous(limits = c(50, 150)) +
+                                      xlab("Minutes btw FIPG Station & Air Decay Leak Test") +
+                                      ylab("Counts") +
+                                      ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Failures")) +
+                                      theme(text = element_text(size=10),legend.position="bottom") 
+
+g.Mins_FIPG_AirDecay_WP.PASS <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="PASS", ], 
+                                           aes(x=Mins_FIPG_AirDecay,fill=`1st_LeakTestResult_WP`)) +
+                                            geom_histogram(binwidth=1, alpha=.5, position="identity", colour='blue', fill = 'blue') +
+                                            scale_x_continuous(limits = c(50, 150)) +
+                                            xlab("Minutes btw FIPG Station & Air Decay Leak Test") +
+                                            ylab("Counts") +
+                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Passers")) +
+                                            theme(text = element_text(size=10),legend.position="bottom") 
+
+g.boxplot.Mins_FIPG_AirDecay_WP <- ggplot(dt.CompleteProcessTiming.1stRecord, aes(x=`1st_LeakTestResult_WP`, 
+                                            y=Mins_FIPG_AirDecay, fill=`1st_LeakTestResult_WP`)) + 
+                                            geom_boxplot() +
+                                            scale_y_continuous(limits = c(50, 150)) +
+                                            ylab("Minutes btw FIPG Station & Air Decay Leka Test") +
+                                            xlab("Leak Test Result") +
+                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison btw Incoming Inspection & Air Decay Leak Test - WP")) +
+                                            theme(text = element_text(size=10),legend.position="bottom") 
+
+
+multiplot(g.Mins_FIPG_AirDecay_WP.PASS, g.Mins_FIPG_AirDecay_WP.FAIL, g.boxplot.Mins_FIPG_AirDecay_WP, cols=1)
+
+
+## Plot Disctribution of lead time between FIPG station & Leak Test Station
+g.Mins_IncomingInsp_AirDecay_WP.FAIL <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="FAIL", ], 
+                                           aes(x=Mins_IncomingInsp_AirDecay,fill=`1st_LeakTestResult_WP`)) +
+                                          geom_histogram(binwidth=1, alpha=.5, position="identity", colour='red', fill = 'red') +
+                                          scale_x_continuous(limits = c(50, 150)) +
+                                          xlab("Minutes btw Incoming Inspection & Air Decay Leka Test") +
+                                          ylab("Counts") +
+                                          ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Failures")) +
+                                          theme(text = element_text(size=10),legend.position="bottom") 
+
+g.Mins_IncomingInsp_AirDecay_WP.PASS <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="PASS", ], 
+                                           aes(x=Mins_IncomingInsp_AirDecay,fill=`1st_LeakTestResult_WP`)) +
+                                            geom_histogram(binwidth=1, alpha=.5, position="identity", colour='blue', fill = 'blue') +
+                                            scale_x_continuous(limits = c(50, 150)) +
+                                            xlab("Minutes btw Incoming Inspection & Air Decay Leka Test") +
+                                            ylab("Counts") +
+                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Passers")) +
+                                            theme(text = element_text(size=10),legend.position="bottom") 
+
+g.boxplot.Mins_IncomingInsp_AirDecay_WP <- ggplot(dt.CompleteProcessTiming.1stRecord, aes(x=`1st_LeakTestResult_WP`, 
+                                          y=Mins_IncomingInsp_AirDecay, fill=`1st_LeakTestResult_WP`)) + 
+                                          geom_boxplot() +
+                                          scale_y_continuous(limits = c(50, 150)) +
+                                          ylab("Minutes btw Incoming Inspection & Air Decay Leka Test") +
+                                          xlab("Leak Test Result") +
+                                          ggtitle(paste("QUK2 SH WJ Lead Time Comparison btw Incoming Inspection & Air Decay Leak Test - WP")) +
+                                          theme(text = element_text(size=10),legend.position="bottom") 
+
+multiplot(g.Mins_IncomingInsp_AirDecay_WP.PASS, g.Mins_IncomingInsp_AirDecay_WP.FAIL, g.boxplot.Mins_IncomingInsp_AirDecay_WP, cols=1)
 
 
 
