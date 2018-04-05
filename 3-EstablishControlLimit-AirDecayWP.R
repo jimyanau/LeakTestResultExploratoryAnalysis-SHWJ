@@ -55,6 +55,10 @@ dt.AirDecay.WP.NoMaster.sample$LeakRateOffseted=dt.AirDecay.WP.NoMaster.sample$a
 dt.AirDecay.WP.NoMaster.sample$transform_AirWP = 1/sqrt(dt.AirDecay.WP.NoMaster.sample$LeakRateOffseted)
 
 
+## run Quantile-Quantile Plot on transformed leak rate
+qqnorm(dt.AirDecay.WP.NoMaster.sample$transform_AirWP)
+qqline(dt.AirDecay.WP.NoMaster.sample$transform_AirWP, col = "red")
+
 ## Now do the hourly statics of the dataset as per original leak rate
 dt.HourlyStat.AirDecay.WP.NoMaster.sample <- Hourly.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster.sample, -3, 2.1)
 

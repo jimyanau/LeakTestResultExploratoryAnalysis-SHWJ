@@ -19,11 +19,11 @@ dt.AirDecay.He.Master <- readRDS("DataOutput/dt.AirDecay.He.Master.RDS")
 
 ### Establish control limit for Air Decay WP Test
 # Subset OK Master data
-dt.AirDecay.WP.Master.Sample <- dt.AirDecay.WP.Master[dt.AirDecay.WP.Master$part_id=="XBA1601290101A23", ]
+dt.AirDecay.WP.OKMaster <- dt.AirDecay.WP.Master[dt.AirDecay.WP.Master$part_id=="XBA1601290101A23" & Result=="PASS", ]
 
 # Random pick up samples
-set.seed(77)
-dt.AirDecay.WP.Master.Sample <- dt.AirDecay.WP.Master.Sample[sample(nrow(dt.AirDecay.WP.Master.Sample),60),]
+set.seed(777)
+dt.AirDecay.WP.Master.Sample <- dt.AirDecay.WP.OKMaster[sample(nrow(dt.AirDecay.WP.OKMaster),60),]
 
 # Assess dataset
 qqnorm(dt.AirDecay.WP.Master.Sample$air_decay_wp)
@@ -37,7 +37,17 @@ g.Master.WP <- ggplot(dt.AirDecay.WP.Master.Sample, aes(x = dt.AirDecay.WP.Maste
                       ggtitle(paste("QUK2 SH WJ Air Decay WP Leak Rate Distribution - OK Master" )) +
                       theme(text = element_text(size=10))
 
+## Setup control limit for Air Decay - WP
+Mean.Ave.LeakRate.Air.OKMaster.WP <- mean(dt.AirDecay.WP.Master.Sample$air_decay_wp)
+SD.Ave.LeakRate.Air.OKMaster.WP <- sd(dt.AirDecay.WP.Master.Sample$air_decay_wp)
 
+##??? Need to calculate the control limit of Stdev of Stdev of Leak Rate???
+
+
+## Plot Control Chart of Master over a period of time
+Plot.SinglePoint.WP.FixedLimit.FixedPeriod(dt.AirDecay.WP.OKMaster, Mean.Ave.LeakRate.Air.OKMaster.WP, SD.Ave.LeakRate.Air.OKMaster.WP, 
+                                           "SH WJ Air Decay Leak Rate - OK Master", as.Date("2018-01-10", tz = "Australia/Melbourne"),
+                                           as.Date("2018-01-30", tz = "Australia/Melbourne"))
 
 
 
