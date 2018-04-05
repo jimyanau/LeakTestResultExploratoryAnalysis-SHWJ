@@ -1548,6 +1548,60 @@ Plot.SinglePoint.WP.FixedLimit.FixedPeriod = function(dt, Mean.ave, SD.ave, Titl
   
 }
 
+Plot.SinglePoint.MC.FixedLimit.FixedPeriod = function(dt, Mean.ave, SD.ave, Title, Date.Start = as.Date("2016-01-01", tz = "Australia/Melbourne"), Date.End = as.Date("2030-01-01", tz = "Australia/Melbourne")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part
+  ## 3) Plot leak rate trend as per casting date
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  
+  #prepare contorl lines for ave. chart
+  sd1.ave <- Mean.ave + 1*SD.ave
+  sd2.ave <- Mean.ave + 2*SD.ave
+  sd3.ave <- Mean.ave + 3*SD.ave
+  sd1.Neg.ave <- Mean.ave - 1*SD.ave
+  sd2.Neg.ave <- Mean.ave - 2*SD.ave
+  sd3.Neg.ave <- Mean.ave - 3*SD.ave
+  
+  # SpecLine.ave <- data.frame(ControlValue = c(lsl, nominal,  usl),
+  #                            ControlType = c("LSL", "Nominal",  "USL" ))
+  
+  ContorlLine.ave <- data.frame(ControlValue = c(sd3.Neg.ave, sd2.Neg.ave, sd1.Neg.ave, Mean.ave ,sd1.ave, sd2.ave, sd3.ave),
+                                ControlType = c("-3 Sigma","-2 Sigma","-1 Sigma", "Target", "1 Sigma","2 Sigma","3 Sigma" ))
+  
+  g <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_mc)) +
+    geom_line()+
+    geom_point()+
+    # Remove spec line when process was in stable condition
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
+    geom_hline(data=ContorlLine.ave, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
+    xlab("Date/Time") +
+    ylab("Leak Rate") +
+    ggtitle(paste(Title )) +
+    scale_x_datetime(date_breaks = "12 hour", labels = date_format("%d/%b %H:00")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  
+  return(g)
+  
+}
+
 Plot.SinglePoint.WP.ControlChart.CastTime = function(dt, nominal, lsl, usl, Title){
   # #Var for testing
   # dt <- dt.ng.Rule2
