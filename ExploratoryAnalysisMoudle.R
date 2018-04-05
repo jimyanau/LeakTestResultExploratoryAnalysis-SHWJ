@@ -1107,9 +1107,9 @@ Plot.Hourly.WP.Mean.SD.Control.FixedLimit = function(dt, nominal, lsl, usl, Titl
         # print(g.ave)
         
         #prepare contorl line for SD chart
-        sd1 <- SD.sd
-        sd2 <- 2*sd1
-        sd3 <- 3*sd1
+        sd1 <- Mean.sd + SD.sd
+        sd2 <- Mean.sd + 2*SD.sd
+        sd3 <- Mean.sd + 3*SD.sd
         
         ContorlLine.sd <- data.frame(ControlValue = c(Mean.sd, sd1, sd2, sd3),
                                      ControlType = c("Mean","1 Sigma", "2 Sigma", "3 Sigma" ))

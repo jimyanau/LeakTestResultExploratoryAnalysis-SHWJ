@@ -147,6 +147,7 @@ dt.CompleteProcessTiming.1stRecord$Mins_IncomingInsp_AirDecay <- as.numeric(diff
 
 ## Save dataset into "DataOutput/dt.CompleteProcessTiming.1stRecord.RDS"
 saveRDS(dt.CompleteProcessTiming.1stRecord, "DataOutput/dt.CompleteProcessTiming.1stRecord.RDS")
+# write.table(dt.CompleteProcessTiming.1stRecord, file = "DataOutput/dt.CompleteProcessTiming.1stRecord.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
 
 
 
@@ -167,7 +168,7 @@ g.Mins_FIPG_AirDecay_WP.FAIL <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.Com
                                       scale_x_continuous(limits = c(50, 150)) +
                                       xlab("Minutes btw FIPG Station & Air Decay Leak Test") +
                                       ylab("Counts") +
-                                      ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Failures")) +
+                                      ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Failures (Jun17~Mar18)")) +
                                       theme(text = element_text(size=10),legend.position="bottom") 
 
 g.Mins_FIPG_AirDecay_WP.PASS <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="PASS", ], 
@@ -176,7 +177,7 @@ g.Mins_FIPG_AirDecay_WP.PASS <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.Com
                                             scale_x_continuous(limits = c(50, 150)) +
                                             xlab("Minutes btw FIPG Station & Air Decay Leak Test") +
                                             ylab("Counts") +
-                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Passers")) +
+                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Passers (Jun17~Mar18)")) +
                                             theme(text = element_text(size=10),legend.position="bottom") 
 
 g.boxplot.Mins_FIPG_AirDecay_WP <- ggplot(dt.CompleteProcessTiming.1stRecord, aes(x=`1st_LeakTestResult_WP`, 
@@ -185,30 +186,32 @@ g.boxplot.Mins_FIPG_AirDecay_WP <- ggplot(dt.CompleteProcessTiming.1stRecord, ae
                                             scale_y_continuous(limits = c(50, 150)) +
                                             ylab("Minutes btw FIPG Station & Air Decay Leka Test") +
                                             xlab("Leak Test Result") +
-                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison btw Incoming Inspection & Air Decay Leak Test - WP")) +
+                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison btw Incoming Inspection & Air Decay Leak Test - WP (Jun17~Mar18)")) +
                                             theme(text = element_text(size=10),legend.position="bottom") 
 
 
 multiplot(g.Mins_FIPG_AirDecay_WP.PASS, g.Mins_FIPG_AirDecay_WP.FAIL, g.boxplot.Mins_FIPG_AirDecay_WP, cols=1)
 
 
-## Plot Disctribution of lead time between FIPG station & Leak Test Station
+## Plot Disctribution of lead time between Incoming Inspection & Leak Test Station
 g.Mins_IncomingInsp_AirDecay_WP.FAIL <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="FAIL", ], 
                                            aes(x=Mins_IncomingInsp_AirDecay,fill=`1st_LeakTestResult_WP`)) +
                                           geom_histogram(binwidth=1, alpha=.5, position="identity", colour='red', fill = 'red') +
+                                          # geom_density() +
                                           scale_x_continuous(limits = c(50, 150)) +
                                           xlab("Minutes btw Incoming Inspection & Air Decay Leka Test") +
                                           ylab("Counts") +
-                                          ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Failures")) +
+                                          ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Failures (Jun17~Mar18)")) +
                                           theme(text = element_text(size=10),legend.position="bottom") 
 
 g.Mins_IncomingInsp_AirDecay_WP.PASS <- ggplot(dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`=="PASS", ], 
                                            aes(x=Mins_IncomingInsp_AirDecay,fill=`1st_LeakTestResult_WP`)) +
                                             geom_histogram(binwidth=1, alpha=.5, position="identity", colour='blue', fill = 'blue') +
+                                            # geom_density() +
                                             scale_x_continuous(limits = c(50, 150)) +
                                             xlab("Minutes btw Incoming Inspection & Air Decay Leka Test") +
                                             ylab("Counts") +
-                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Passers")) +
+                                            ggtitle(paste("QUK2 SH WJ Lead Time Comparison - Air Decay WP Passers (Jun17~Mar18)")) +
                                             theme(text = element_text(size=10),legend.position="bottom") 
 
 g.boxplot.Mins_IncomingInsp_AirDecay_WP <- ggplot(dt.CompleteProcessTiming.1stRecord, aes(x=`1st_LeakTestResult_WP`, 
@@ -217,7 +220,7 @@ g.boxplot.Mins_IncomingInsp_AirDecay_WP <- ggplot(dt.CompleteProcessTiming.1stRe
                                           scale_y_continuous(limits = c(50, 150)) +
                                           ylab("Minutes btw Incoming Inspection & Air Decay Leka Test") +
                                           xlab("Leak Test Result") +
-                                          ggtitle(paste("QUK2 SH WJ Lead Time Comparison btw Incoming Inspection & Air Decay Leak Test - WP")) +
+                                          ggtitle(paste("QUK2 SH WJ Lead Time Comparison btw Incoming Inspection & Air Decay Leak Test - WP (Jun17~Mar18)")) +
                                           theme(text = element_text(size=10),legend.position="bottom") 
 
 multiplot(g.Mins_IncomingInsp_AirDecay_WP.PASS, g.Mins_IncomingInsp_AirDecay_WP.FAIL, g.boxplot.Mins_IncomingInsp_AirDecay_WP, cols=1)

@@ -70,6 +70,9 @@ saveRDS(dt.AirDecay.WP.NoMaster, "DataOutput/dt.AirDecay.WP.NoMaster.RDS")
 saveRDS(dt.AirDecay.MC.NoMaster, "DataOutput/dt.AirDecay.MC.NoMaster.RDS")
 saveRDS(dt.AirDecay.He.NoMaster, "DataOutput/dt.AirDecay.He.NoMaster.RDS")
 
+# write.table(dt.AirDecay.WP.NoMaster, file = "DataOutput/dt.AirDecay.WP.NoMaster.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
+# write.table(dt.AirDecay.MC.NoMaster, file = "DataOutput/dt.AirDecay.MC.NoMaster.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
+# write.table(dt.AirDecay.He.NoMaster, file = "DataOutput/dt.AirDecay.He.NoMaster.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
 
 ## Extract data of master parts for comparison
 ## Assemble casting date / time based on barcode. Records with incorrect barcode format will be dropped.
@@ -88,5 +91,7 @@ saveRDS(dt.AirDecay.WP.Master, "DataOutput/dt.AirDecay.WP.Master.RDS")
 saveRDS(dt.AirDecay.MC.Master, "DataOutput/dt.AirDecay.MC.Master.RDS")
 saveRDS(dt.AirDecay.He.Master, "DataOutput/dt.AirDecay.He.Master.RDS")
 
-
+# write.table(dt.AirDecay.WP.Master, file = "DataOutput/dt.AirDecay.WP.Master.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
+# write.table(dt.AirDecay.MC.Master, file = "DataOutput/dt.AirDecay.MC.Master.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
+# write.table(dt.AirDecay.He.Master, file = "DataOutput/dt.AirDecay.He.Master.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
 

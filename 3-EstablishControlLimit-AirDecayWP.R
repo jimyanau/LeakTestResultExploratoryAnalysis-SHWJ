@@ -24,12 +24,29 @@ set.seed(8)
 List.Date <- as.data.frame(sample(dt.DailyStat.AirDecay.WP.NoMaster.temp$Date, 30, replace = FALSE))
 dt.AirDecay.WP.NoMaster.sample <- dt.AirDecay.WP.NoMaster.temp[ as.Date(dt.AirDecay.WP.NoMaster.temp$LeakTestDateTime) %in% List.Date[,1] , ]
 
+
 ## Check the descriptive statics of sampled dataset on daily basis
 dt.DailyStat.AirDecay.WP.NoMaster.sample <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.NoMaster.sample, -3, 2.1)
 
 ## Qty of each day was > 30
 ## Now Need to remove outliners
 dt.AirDecay.WP.NoMaster.sample <- dt.AirDecay.WP.NoMaster.sample[ dt.AirDecay.WP.NoMaster.sample$air_decay_wp<900, ]
+
+
+## run Quantile-Quantile Plot on dataset to access the distribution
+qqnorm(dt.AirDecay.WP.NoMaster.sample$air_decay_wp)
+qqline(dt.AirDecay.WP.NoMaster.sample$air_decay_wp, col = "red")
+
+## Plot distribution of dataset
+g.Sample <- ggplot(dt.AirDecay.WP.NoMaster.sample, aes(x = dt.AirDecay.WP.NoMaster.sample$air_decay_wp)) +
+            geom_histogram(binwidth=0.1, alpha = 0.9, position = "dodge") +
+            # geom_density(alpha=.2, fill="#FF6666")+
+            scale_x_continuous(limits = c(-3, 3)) +
+            xlab("Leak Rate") +
+            ylab("Counts") +
+            ggtitle(paste("QUK2 SH WJ Leak Rate Distribution" )) +
+            theme(text = element_text(size=10))
+
 
 ## Transform leak rate into 1/sqrt(x) as per the suggestion from Carolyn
 # Added offset of 3.001 into leak rate considering the lsl is -3 cc/min
@@ -53,15 +70,16 @@ SD.SD.LeakRate <- sd(dt.HourlyStat.AirDecay.WP.NoMaster.sample$Stdev.LeakRate)
 dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans <- Hourly.Statics.AirDecay.Transform.WP(dt.AirDecay.WP.NoMaster.sample, -3, 2.1)
 
 ## Set control limit as per transformed leak rate
-Mean.Ave.LeakRate.Trans <- mean(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$Avg.LeakRate.Trans)
-SD.Ave.LeakRate.Trans <- sd(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$Avg.LeakRate.Trans)
-Mean.SD.LeakRate.Trans <- mean(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$'Stdev.LeakRate.Trans')
-SD.SD.LeakRate.Trans <- sd(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$'Stdev.LeakRate.Trans')
+Mean.Ave.LeakRate.Trans <- mean(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$Avg.LeakRate)
+SD.Ave.LeakRate.Trans <- sd(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$Avg.LeakRate)
+Mean.SD.LeakRate.Trans <- mean(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$'Stdev.LeakRate')
+SD.SD.LeakRate.Trans <- sd(dt.HourlyStat.AirDecay.WP.NoMaster.sample.Trans$'Stdev.LeakRate')
 
 
 ################################################################################################################################################
 ################################################################################################################################################
 ################################################################################################################################################
+## Below is an example to plot contorl chart with new setup contorl limits
 
 ## Subset data in continuous date to plot contorl chart
 ## Plot control chart of original leak test value with set control limits

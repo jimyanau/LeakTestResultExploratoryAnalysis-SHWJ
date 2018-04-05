@@ -19,11 +19,11 @@ dt.TempHumidity <- readRDS("DataOutput/dt.TempHumidity.RDS")
 
 
 ## Check data summary
-summarizeColumns(dt.AirDecay.WP.NoMaster)
+# summarizeColumns(dt.AirDecay.WP.NoMaster)
 ## Found that there were missing values on casting date due to wrong barcode format. We need to remove those part with incorrect ID.
 dt.AirDecay.WP.NoMaster <- dt.AirDecay.WP.NoMaster[complete.cases(dt.AirDecay.WP.NoMaster),]
 ## Check data summary
-summarizeColumns(dt.AirDecay.WP.NoMaster)
+# summarizeColumns(dt.AirDecay.WP.NoMaster)
 
 
 ## Remove duplicates, calculate leak test result based on supplied spec.
@@ -237,3 +237,9 @@ multiplot(g.Mean, g.SD, g.NGRate, g.qty, cols=1)
                                              " WP - 15~20/JAN/2018", dt.AirDecay.WP.Master, "XBA1601290101A23", 
                                              as.Date("2018-01-19"), as.Date("2018-01-20") )
         
+
+        
+        
+## Output data for investigation on other platform
+# write.table(dt.AirDecay.WP.NoMaster, file = "DataOutput/dt.AirDecay.WP.NoMaster.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
+# write.table(dt.AirDecay.WP.Master, file = "DataOutput/dt.AirDecay.WP.Master.csv",row.names=FALSE, na="",col.names=TRUE, sep=",")
