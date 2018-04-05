@@ -73,7 +73,9 @@ Extract.LeakTestStation.Data = function(InputFile) {
         dt[ , part_id := as.character(gsub("    ", "", part_id))]
         
         #Assemble Date/Time
-        dt$LeakTestDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
+        # Convert time zone to queensland as there was no daylight saving at QLD
+        dt$LeakTestDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", 
+                                              dt$time_hour,":", dt$time_minute,":",dt$time_second), tz = "Australia/Queensland")
         
         #subset air decay test data of water passage
         dt.AirDecay.WP.Full <- dt[dt$chamber_id=="1"]
@@ -119,7 +121,8 @@ Extract.InspectionData = function(InputFile) {
   dt[ , part_id := as.character(gsub("    ", "", part_id))]
   
   # Convert dat time into correct format
-  dt$datetime <- as.POSIXct(dt$datetime,format="%d/%m/%Y %H:%M", tz = "UTC")
+  # Use MEL as time zone becasue the inspection station got daylight savings.
+  dt$datetime <- as.POSIXct(dt$datetime,format="%d/%m/%Y %H:%M", tz = "Australia/Melbourne")
  
   dt <- dt[order(dt$datetime), ]
  
@@ -146,7 +149,7 @@ Extract.TempHumidity = function(InputFile) {
 
   # convert date & time into POSIXct Format
   dt$Date <- as.Date(dt$Date, format = "%d/%m/%Y")
-  dt$Date.Time <- as.POSIXct(dt$Date.Time,format="%d/%m/%Y %H:%M")
+  dt$Date.Time <- as.POSIXct(dt$Date.Time,format="%d/%m/%Y %H:%M", tz = "Australia/Melbourne")
   
   #sort in oredr of test date
   dt <- dt[order(dt$Date.Time, decreasing = FALSE),]
@@ -177,7 +180,9 @@ Extract.PinningStation = function(InputFile) {
   dt[ , part_id := as.character(gsub("    ", "", part_id))]
   
   #Assemble Date/Time
-  dt$PinningDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
+  # Convert time zone to queensland as there was no daylight saving at QLD
+  dt$PinningDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", 
+                                        dt$time_hour,":", dt$time_minute,":",dt$time_second), tz = "Australia/Queensland")
   
   #sort in oredr of part id then test date
   dt <- dt[order(dt$PinningDateTime, decreasing = FALSE),]
@@ -225,8 +230,10 @@ Extract.FIPGStation = function(InputFile) {
   dt[ , part_id := as.character(gsub("    ", "", part_id))]
   
   #Assemble Date/Time
-  dt$FIPGDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", dt$time_hour,":", dt$time_minute,":",dt$time_second))
-  
+  # Convert time zone to queensland as there was no daylight saving at QLD
+  dt$FIPGDateTime <- ymd_hms(paste0(dt$time_year,"-",dt$time_month,"-", dt$time_day," ", 
+                                       dt$time_hour,":", dt$time_minute,":",dt$time_second), tz = "Australia/Queensland")
+
   #sort in oredr of part id then test date
   dt <- dt[order(dt$FIPGDateTime, decreasing = FALSE),]
   

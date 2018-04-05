@@ -7,9 +7,6 @@ Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr"
 
 Install_And_Load(Required_Packages)
 
-File.LeakTestStation <- c("DataSource/QUK2SH_WJ_Leak_Rate.tsv")
-File.Inspection <- c("DataSource/Barcode_Reporting.tsv")
-
 
 ######################################################################################################################################################################
 ## Load data processed in 0-ExtractCleanData-LeakTestStation.R
