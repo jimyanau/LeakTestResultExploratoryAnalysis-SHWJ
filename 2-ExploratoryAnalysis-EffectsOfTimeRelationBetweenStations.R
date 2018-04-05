@@ -72,8 +72,8 @@ dt.CompleteProcessTiming.1stRecord <- merge(dt.CompleteProcessTiming.1stRecord, 
                                   by.x = "part_id", by.y = "part_id", all.x = TRUE)
 
 # Add Air Decay WP Data into Dataset
-dt.CompleteProcessTiming.1stRecord <- merge(dt.CompleteProcessTiming.1stRecord, dt.AirDecay.WP.NoMaster.1stRecord[, c( "part_id" , "LeakTestDateTime",
-                                 "CastMC", "CastDie","CastMC_Die","CastDate","CastDateTime","air_decay_wp" ,"Result")], 
+dt.CompleteProcessTiming.1stRecord <- merge(dt.CompleteProcessTiming.1stRecord, dt.AirDecay.WP.NoMaster.1stRecord[, c( "part_id" , 
+                                 "CastMC", "CastDie","CastMC_Die","CastDate","CastDateTime","LeakTestDateTime", "air_decay_wp" ,"Result")], 
                                   by.x = "part_id", by.y = "part_id", all.x = TRUE)
 
 # Rename columns
@@ -89,6 +89,10 @@ dt.CompleteProcessTiming.1stRecord <- merge(dt.CompleteProcessTiming.1stRecord, 
 setnames(dt.CompleteProcessTiming.1stRecord, "LeakTestDateTime", "1st_AirDecay_DateTime_MC")
 setnames(dt.CompleteProcessTiming.1stRecord, "air_decay_mc", "1st_LeakRate_MC")
 setnames(dt.CompleteProcessTiming.1stRecord, "Result", "1st_LeakTestResult_MC")
+
+### Remove row with missing data on Pinning Station Time & FIPG Station Time & Air Decay Test  ###
+dt.CompleteProcessTiming.1stRecord <- dt.CompleteProcessTiming.1stRecord[ complete.cases(dt.CompleteProcessTiming.1stRecord), ]
+
 
 # Add Helium Leak Test Data into Dataset
 dt.CompleteProcessTiming.1stRecord <- merge(dt.CompleteProcessTiming.1stRecord, dt.AirDecay.He.NoMaster.1stRecord[, c( "part_id" , "LeakTestDateTime", "helium_test" ,"Result")], 
@@ -120,6 +124,17 @@ setnames(dt.CompleteProcessTiming.1stRecord, "inspection_result", "300%Inspectio
 setnames(dt.CompleteProcessTiming.1stRecord, "defect_code", "300%DefectCode")
 setnames(dt.CompleteProcessTiming.1stRecord, "defect_location", "300%DefectLocation")
 
+
+### Pls notice that the data with missing value in 100% Inspection, Pinning Station, FIPG Station & Air Decay Leak 
+### Test Station had been removed for investigation purpose. All records were the 1st. record of the same part ID.
+
+# Calculate leak time between stations
+dt.CompleteProcessTiming.1stRecord$Mins_IncomingInsp_FIPG <- as.numeric(difftime(dt.CompleteProcessTiming.1stRecord$FIPGDateTime, dt.CompleteProcessTiming.1stRecord$"100%_Insp_DateTime"), units="mins")
+dt.CompleteProcessTiming.1stRecord$Mins_FIPG_AirDecay <- as.numeric(difftime(dt.CompleteProcessTiming.1stRecord$`1st_AirDecay_DateTime`, dt.CompleteProcessTiming.1stRecord$FIPGDateTime), units="mins")
+dt.CompleteProcessTiming.1stRecord$Mins_IncomingInsp_AirDecay <- as.numeric(difftime(dt.CompleteProcessTiming.1stRecord$`1st_AirDecay_DateTime`, dt.CompleteProcessTiming.1stRecord$"100%_Insp_DateTime"), units="mins")
+
+### Noticed that there was time difference between stations. Working with NCAP to get the difference between machine time and actual time.
+### Will add the offset into dataset.
 
 
 

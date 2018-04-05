@@ -119,7 +119,7 @@ Extract.InspectionData = function(InputFile) {
   dt[ , part_id := as.character(gsub("    ", "", part_id))]
   
   # Convert dat time into correct format
-  dt$datetime <- as.POSIXct(dt$datetime,format="%d/%m/%Y %H:%M")
+  dt$datetime <- as.POSIXct(dt$datetime,format="%d/%m/%Y %H:%M", tz = "UTC")
  
   dt <- dt[order(dt$datetime), ]
  
