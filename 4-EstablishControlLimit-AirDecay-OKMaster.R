@@ -25,6 +25,7 @@ dt.AirDecay.He.Master <- readRDS("DataOutput/dt.AirDecay.He.Master.RDS")
 
 ############################# Establish control limit for Air Decay WP Test  ###########################
 # Subset OK Master data
+# Rejected value were dropped
 dt.AirDecay.WP.OKMaster <- dt.AirDecay.WP.Master[dt.AirDecay.WP.Master$part_id=="XBA1601290101A23" & Result=="PASS", ]
 
 # Random pick up samples
@@ -49,7 +50,14 @@ hist(dt.AirDecay.WP.Master[dt.AirDecay.WP.Master$part_id=="XBA1601290101A23" &
                              dt.AirDecay.WP.Master$air_decay_wp < max(dt.AirDecay.WP.Master$air_decay_wp), ]$air_decay_wp, breaks=50,col=2)
 
 ## Get the daily statics of OK Master Part for X-bar R Chart. Rejected records were dropped
-dt.DailyStat.AirDecay.WP.Master <- Daily.Statics.AirDecay.WP(dt.AirDecay.WP.OKMaster, -3, 2.1)
+dt.DailyStat.AirDecay.WP.Master <- Daily.Statics.AirDecay.Master.WP(dt.AirDecay.WP.OKMaster, -3, 2.1)
+
+## Plot distribution of qty of daily subgroups
+hist(dt.DailyStat.AirDecay.WP.Master$Qty)
+mean(dt.DailyStat.AirDecay.WP.Master$Qty)
+
+## Becasue most of the subgroup was <5 pcs. So we are going to use X-bar R chart for process control.
+
 
 
 ## Setup control limit for Air Decay - WP

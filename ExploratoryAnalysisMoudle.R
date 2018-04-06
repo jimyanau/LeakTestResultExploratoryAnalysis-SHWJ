@@ -474,6 +474,43 @@ Daily.Statics.AirDecay.Master.WP = function(dt.source, lsl, usl) {
   return(dt) 
 }
 
+Weekly.Statics.AirDecay.Master.WP = function(dt.source, lsl, usl) {
+  
+  ## Summarize statics data by gourp. All duplicates will be removed before summary.
+  ## This function is used on Master part. Hence do not need to remove duplicates
+  
+  # #test variable
+  # dt.source <- dt.AirDecay.WP.OKMaster
+  # lsl = -3
+  # usl = 2.1
+  
+  #sort in oredr of test date
+  dt.source <- dt.source[order(dt.source$LeakTestDateTime, decreasing = FALSE),]
+  
+  #calculate test result
+  dt.source[dt.source$air_decay_wp > usl | dt.source$air_decay_wp < lsl, Result := as.factor("FAIL")]
+  dt.source[dt.source$air_decay_wp <= usl & dt.source$air_decay_wp >= lsl, Result := as.factor("PASS")]
+  
+  
+  dt <- dt.source %>%
+                group_by(week = floor_date(LeakTestDateTime, "1 week")) %>%
+                summarize(Qty = n(),
+                          RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+                          Avg.LeakRate = mean(air_decay_wp), 
+                          Stdev.LeakRate = sd(air_decay_wp),
+                          Max.LeakRate = max(air_decay_wp), 
+                          Min.LeakRate = min(air_decay_wp),
+                          Range.LeakRate = (Max.LeakRate - Min.LeakRate)
+    )
+  
+  #Remove NA of Stdev due to low qty (count=1)
+  dt <- dt[complete.cases(dt),]
+  
+  
+  return(dt) 
+}
+
+
 Daily.Statics.AirDecay.MC = function(dt.source, lsl, usl) {
   
   ## Summarize statics data by gourp. All duplicates will be removed before summary.
