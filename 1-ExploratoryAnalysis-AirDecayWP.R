@@ -7,6 +7,8 @@ Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr"
 
 Install_And_Load(Required_Packages)
 
+# Set system time zone of R
+Sys.setenv(TZ="Australia/Melbourne")
 
 ######################################################################################################################################################################
 ## Load data processed in 0-ExtractCleanData-LeakTestStation.R

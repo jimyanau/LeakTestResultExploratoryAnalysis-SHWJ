@@ -7,6 +7,9 @@ Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr"
 
 Install_And_Load(Required_Packages)
 
+# Set system time zone of R
+Sys.setenv(TZ="Australia/Melbourne")
+
 #Setup File Names
 File.LeakTestStation <- c("DataSource/QUK2SH_WJ_Leak_Rate.tsv")
 File.TempHumidity <- c("DataSource/TempRecord.tsv")
