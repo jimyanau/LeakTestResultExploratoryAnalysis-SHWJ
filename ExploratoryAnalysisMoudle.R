@@ -423,7 +423,7 @@ Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
         dt <- dt.source %>%
               group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
               summarize(Qty = n(),
-                        RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+                        RejectPercent = (sum(Result=="FAIL") / Qty)*100,
                         Avg.LeakRate = mean(air_decay_wp), 
                         Stdev.LeakRate = sd(air_decay_wp),
                         Max.LeakRate = max(air_decay_wp), 
@@ -459,7 +459,7 @@ Daily.Statics.AirDecay.Master.WP = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
               group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
               summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_wp), 
               Stdev.LeakRate = sd(air_decay_wp),
               Max.LeakRate = max(air_decay_wp), 
@@ -495,7 +495,7 @@ Weekly.Statics.AirDecay.Master.WP = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
                 group_by(week = floor_date(LeakTestDateTime, "1 week")) %>%
                 summarize(Qty = n(),
-                          RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+                          RejectPercent = (sum(Result=="FAIL") / Qty)*100,
                           Avg.LeakRate = mean(air_decay_wp), 
                           Stdev.LeakRate = sd(air_decay_wp),
                           Max.LeakRate = max(air_decay_wp), 
@@ -534,7 +534,7 @@ Daily.Statics.AirDecay.MC = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
     group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
     summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_mc), 
               Stdev.LeakRate = sd(air_decay_mc),
               Max.LeakRate = max(air_decay_mc), 
@@ -573,7 +573,7 @@ Daily.Statics.AirDecay.He = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
     group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
     summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(helium_test), 
               Stdev.LeakRate = sd(helium_test),
               Max.LeakRate = max(helium_test), 
@@ -589,12 +589,28 @@ Daily.Statics.AirDecay.He = function(dt.source, lsl, usl) {
 }
 
 KeepLatestRecord.AirDecay = function(dt) {
-          #Remove duplicates
+          #sort in oredr of test date
+          dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+            #Remove duplicates
           dt <- dt[ , .SD[.N] ,  by = c("part_id") ]
           
           #sort in oredr of test date
           dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
   
+          return(dt)
+}
+
+KeepLatestRecord.He = function(dt) {
+          #sort in oredr of test date
+          dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+          
+          #Remove duplicates
+          dt <- dt[ , .SD[.N] ,  by = c("part_id") ]
+          
+          #sort in oredr of test date
+          dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+          
           return(dt)
 }
 
@@ -650,7 +666,7 @@ Sum.Stat.AirDecay.WP = function(dt, Date.Start = as.Date("2016-01-01"), Date.End
   dt <- dt %>%
     group_by(CastMC_Die) %>%
     summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_wp), 
               Stdev.LeakRate = sd(air_decay_wp)
     )
@@ -683,7 +699,7 @@ Hourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
     group_by(HourDate=floor_date(LeakTestDateTime, "1 hour")) %>%
     summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_wp), 
               Stdev.LeakRate = sd(air_decay_wp),
               Max.LeakRate = max(air_decay_wp), 
@@ -724,7 +740,7 @@ Hourly.Statics.AirDecay.Transform.WP = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
     group_by(HourDate=floor_date(LeakTestDateTime, "1 hour")) %>%
     summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(transform_AirWP), 
               Stdev.LeakRate = sd(transform_AirWP),
               Max.LeakRate = max(transform_AirWP), 
@@ -764,7 +780,7 @@ HalfHourly.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
     group_by(HourDate=floor_date(LeakTestDateTime, "30 minute")) %>%
     summarize(Qty = n(),
-              RejectPrecent = (sum(Result=="FAIL") / Qty)*100,
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_wp), 
               Stdev.LeakRate = sd(air_decay_wp),
               Max.LeakRate = max(air_decay_wp), 
@@ -1004,20 +1020,20 @@ Plot.Daily.Mean.SD.Control.MovingLimit = function(dt, nominal, lsl, usl, Title) 
 
         
         #prepare contorl line for reject rate chart
-        Mean.ng <- mean(dt$RejectPrecent)
-        sd1.ng <- sd(dt$RejectPrecent)
+        Mean.ng <- mean(dt$RejectPercent)
+        sd1.ng <- sd(dt$RejectPercent)
         sd2.ng <- 2*sd1.ng
         sd3.ng <- 3*sd1.ng
         
         ContorlLine.ng <- data.frame(ControlValue = c(Mean.ng, sd1.ng, sd2.ng, sd3.ng),
                                      ControlType = c("Mean", "1 Sigma", "2 Sigma", "3 Sigma" ))
         
-        g.ng <- ggplot(dt, aes(x = dt$Date, y=dt$RejectPrecent)) +
+        g.ng <- ggplot(dt, aes(x = dt$Date, y=dt$RejectPercent)) +
                       geom_line()+
                       geom_point()+
                       geom_hline(data=ContorlLine.ng, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
                       xlab("Date") +
-                      ylab("Reject Precentage") +
+                      ylab("Reject Percentage") +
                       ggtitle(paste("QUK2 SH WJ Leak Test Reject Rate - ", Title )) +
                       theme(text = element_text(size=10))
         # print(g.ng)        
@@ -1100,20 +1116,20 @@ Plot.Hourly.WP.Mean.SD.Control.MovingLimit = function(dt, nominal, lsl, usl, Tit
           
           
           #prepare contorl line for reject rate chart
-          Mean.ng <- mean(dt$RejectPrecent)
-          sd1.ng <- sd(dt$RejectPrecent)
+          Mean.ng <- mean(dt$RejectPercent)
+          sd1.ng <- sd(dt$RejectPercent)
           sd2.ng <- 2*sd1.ng
           sd3.ng <- 3*sd1.ng
           
           ContorlLine.ng <- data.frame(ControlValue = c(Mean.ng, sd1.ng, sd2.ng, sd3.ng),
                                        ControlType = c("Mean", "1 Sigma", "2 Sigma", "3 Sigma" ))
           
-          g.ng <- ggplot(dt, aes(x = dt$HourDate, y=dt$RejectPrecent)) +
+          g.ng <- ggplot(dt, aes(x = dt$HourDate, y=dt$RejectPercent)) +
                     geom_line()+
                     geom_point()+
                     geom_hline(data=ContorlLine.ng, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
                     xlab("Date/Time") +
-                    ylab("Reject Precentage") +
+                    ylab("Reject Percentage") +
                     ggtitle(paste("QUK2 SH WJ Leak Test Reject Rate - ", Title )) +
                     scale_x_datetime(date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
                     theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
@@ -1173,7 +1189,7 @@ Plot.Hourly.WP.Mean.SD.Control.FixedLimit = function(dt, nominal, lsl, usl, Titl
                       geom_hline(data=ContorlLine.ave, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
                       xlab("Date/Time") +
                       ylab("Ave. Leak Rate") +
-                      ggtitle(paste("QUK2 SH WJ Leak Rate Ave - ", Title )) +
+                      ggtitle(paste("QUK2 SH WJ Air Decay Xbar Chart - WP", Title )) +
                       scale_x_datetime(date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
                       theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
         # print(g.ave)
@@ -1192,27 +1208,27 @@ Plot.Hourly.WP.Mean.SD.Control.FixedLimit = function(dt, nominal, lsl, usl, Titl
                       geom_hline(data=ContorlLine.sd, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
                       xlab("Date/Time") +
                       ylab("Std. Dev.") +
-                      ggtitle(paste("QUK2 SH WJ Leak Rate Std Dev - ", Title )) +
+                      ggtitle(paste("QUK2 SH WJ Air Decay Std Dev Chart - WP", Title )) +
                       scale_x_datetime(date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
                       theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
         # print(g.sd)
         
         
         #prepare contorl line for reject rate chart
-        Mean.ng <- mean(dt$RejectPrecent)
-        sd1.ng <- sd(dt$RejectPrecent)
+        Mean.ng <- mean(dt$RejectPercent)
+        sd1.ng <- sd(dt$RejectPercent)
         sd2.ng <- 2*sd1.ng
         sd3.ng <- 3*sd1.ng
         
         ContorlLine.ng <- data.frame(ControlValue = c(Mean.ng, sd1.ng, sd2.ng, sd3.ng),
                                      ControlType = c("Mean", "1 Sigma", "2 Sigma", "3 Sigma" ))
         
-        g.ng <- ggplot(dt, aes(x = dt$HourDate, y=dt$RejectPrecent)) +
+        g.ng <- ggplot(dt, aes(x = dt$HourDate, y=dt$RejectPercent)) +
                       geom_line()+
                       geom_point()+
                       geom_hline(data=ContorlLine.ng, aes(yintercept=ControlValue, colour = ControlType ), linetype="dashed",  size=1) +
                       xlab("Date/Time") +
-                      ylab("Reject Precentage") +
+                      ylab("Reject Percentage") +
                       ggtitle(paste("QUK2 SH WJ Leak Test Reject Rate - ", Title )) +
                       scale_x_datetime(date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
                       theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
@@ -1824,3 +1840,5 @@ Plot.SinglePoint.WP.Histogram = function(dt, nominal, lsl, usl, Title){
   
   multiplot(g.LT,  cols=1)
 }
+
+

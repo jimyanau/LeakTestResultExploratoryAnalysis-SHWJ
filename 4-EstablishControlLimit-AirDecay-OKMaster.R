@@ -55,20 +55,37 @@ dt.DailyStat.AirDecay.WP.Master <- Daily.Statics.AirDecay.Master.WP(dt.AirDecay.
 ## Plot distribution of qty of daily subgroups
 hist(dt.DailyStat.AirDecay.WP.Master$Qty)
 mean(dt.DailyStat.AirDecay.WP.Master$Qty)
+## Becasue most of the subgroup was <5 pcs. So we should to use X-bar R chart for process control if we use subgroup of 1 day.
 
-## Becasue most of the subgroup was <5 pcs. So we are going to use X-bar R chart for process control.
+## Get the weekly statics of OK Master Part for X-bar R Chart. Rejected records were dropped
+dt.WeeklyStat.AirDecay.WP.Master <- Weekly.Statics.AirDecay.Master.WP(dt.AirDecay.WP.OKMaster, -3, 2.1)
 
+## Plot distribution of qty of weekly subgroups
+hist(dt.WeeklyStat.AirDecay.WP.Master$Qty)
+mean(dt.WeeklyStat.AirDecay.WP.Master$Qty)
 
-
+## So we are going to setup X-bar R chart based on weekly statics with subgroup size of 22.
 ## Setup control limit for Air Decay - WP
-Mean.Ave.LeakRate.Air.OKMaster.WP <- mean(dt.AirDecay.WP.Master.Sample$air_decay_wp)
-SD.Ave.LeakRate.Air.OKMaster.WP <- sd(dt.AirDecay.WP.Master.Sample$air_decay_wp)
+Rbar.Master.Air.WP <- mean(dt.WeeklyStat.AirDecay.WP.Master$Range.LeakRate)
+Xdbar.Master.Air.WP <- mean(dt.WeeklyStat.AirDecay.WP.Master$Avg.LeakRate)
+## UCLr = D4 * Rbar, D4 = 1.566 when subgroup size =22
+UCLr.Master.Air.WP <- 1.566*Rbar.Master.Air.WP
+## LCLr = D3 * Rbar, D3 = 0.434 when subgroup size =22
+LCLr.Master.Air.WP <- 0.434*Rbar.Master.Air.WP
+## UCLx = Xdbar + A2 * Rbar, LCLx = xdbar - A2 * Rbar, A2 = 0.167 when subgroup size=22
+UCLx.Master.Air.WP <- Xdbar.Master.Air.WP + 0.167*Rbar.Master.Air.WP
+LCLx.Master.Air.WP <- Xdbar.Master.Air.WP + 0.167*Rbar.Master.Air.WP
 
+# Mean.Ave.LeakRate.Air.OKMaster.WP <- mean(dt.AirDecay.WP.Master.Sample$air_decay_wp)
+# SD.Ave.LeakRate.Air.OKMaster.WP <- sd(dt.AirDecay.WP.Master.Sample$air_decay_wp)
+# 
+# 
+# ## For Example, plot Control Chart of OK Master over a period of time
+# Plot.SinglePoint.WP.FixedLimit.FixedPeriod(dt.AirDecay.WP.OKMaster, Mean.Ave.LeakRate.Air.OKMaster.WP, SD.Ave.LeakRate.Air.OKMaster.WP, 
+#                                            "SH WJ Air Decay Leak Rate - WP (OK Master)", as.Date("2018-01-10", tz = "Australia/Melbourne"),
+#                                            as.Date("2018-01-30", tz = "Australia/Melbourne"))
 
-## For Example, plot Control Chart of OK Master over a period of time
-Plot.SinglePoint.WP.FixedLimit.FixedPeriod(dt.AirDecay.WP.OKMaster, Mean.Ave.LeakRate.Air.OKMaster.WP, SD.Ave.LeakRate.Air.OKMaster.WP, 
-                                           "SH WJ Air Decay Leak Rate - WP (OK Master)", as.Date("2018-01-10", tz = "Australia/Melbourne"),
-                                           as.Date("2018-01-30", tz = "Australia/Melbourne"))
+#Need to work out a new function to plot X-bar R chart
 
 ###########################################################################################################################
 ###########################################################################################################################
