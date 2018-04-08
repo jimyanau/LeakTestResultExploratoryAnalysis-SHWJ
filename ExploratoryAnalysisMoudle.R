@@ -457,6 +457,46 @@ Add.Suportive.Cols.to.LeakTestStation = function(dt) {
 }
 
 
+Process.Monthly.Xbar_SChart = function(dt) {
+  ## This function is to process control limits of x-bar S chart
+  ## Please clone the date/time column as "UseTime"
+  ## Please clone the target value for SPC control as "UseData"
+  
+  # # Test Variable
+  # dt.source <- dt.AirDecay.WP.NoMaster.XSChart
+  
+  # sort dataset in order of time
+  dt.source <- dt.source[order(dt.source$UseTime, decreasing = FALSE),]
+  
+  # Do statics of dataset as per set time period
+  dt <- dt.source %>%
+        group_by(Period = floor_date(LeakTestDateTime, "1 month")) %>%
+        summarize(Qty = n(),
+                  RejectPercent = (sum(Result=="FAIL") / Qty)*100,
+                  Avg.LeakRate = mean(UseData), 
+                  Stdev.LeakRate = sd(UseData),
+                  Max.LeakRate = max(UseData), 
+                  Min.LeakRate = min(UseData),
+                  Range.LeakRate = (Max.LeakRate - Min.LeakRate)
+        )
+  
+  #Assemble ID column and sort it in reverse order
+  dt$ID <- seq.int(nrow(dt))
+  dt <- dt[order(dt$ID, decreasing = TRUE),]
+  
+  # work out control limit row by row
+  for(i in 1:nrow(dt)) {
+      
+    
+    
+    
+  }
+
+  
+  
+  return(dt)
+}
+
 
 Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
 
