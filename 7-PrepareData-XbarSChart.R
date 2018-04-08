@@ -6,7 +6,7 @@ rm(list=ls())
 source("ExploratoryAnalysisMoudle.R")
 
 # Install & load required packages
-Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly","mlr", "psych", "MASS")
+Required_Packages=c("openxlsx", "data.table", "splitstackshape", "dplyr","tidyr", "lubridate","ggplot2", "scales", "plotly","mlr", "psych", "MASS", "ggpubr")
 
 Install_And_Load(Required_Packages)
 
@@ -47,6 +47,10 @@ dt.AirDecay.He.NoMaster.TBM <- merge(dt.AirDecay.He.NoMaster.TBM, dt.CompletePro
                                      "Mins_IncomingInsp_FIPG","Mins_FIPG_AirDecay","Mins_IncomingInsp_AirDecay")], 
                                      by.x = "part_id", by.y = "part_id", all.x = TRUE)
 
+# sort dataset in order of test time
+dt.AirDecay.WP.NoMaster.TBM <- dt.AirDecay.WP.NoMaster.TBM[order(dt.AirDecay.WP.NoMaster.TBM$LeakTestDateTime, decreasing = FALSE),]
+dt.AirDecay.MC.NoMaster.TBM <- dt.AirDecay.MC.NoMaster.TBM[order(dt.AirDecay.MC.NoMaster.TBM$LeakTestDateTime, decreasing = FALSE),]
+dt.AirDecay.He.NoMaster.TBM <- dt.AirDecay.He.NoMaster.TBM[order(dt.AirDecay.He.NoMaster.TBM$LeakTestDateTime, decreasing = FALSE),]
 
 # Save dataset for further investigation
 saveRDS(dt.AirDecay.WP.NoMaster.TBM, "DataOutput/dt.AirDecay.WP.NoMaster.TBM.RDS")
@@ -54,9 +58,31 @@ saveRDS(dt.AirDecay.MC.NoMaster.TBM, "DataOutput/dt.AirDecay.MC.NoMaster.TBM.RDS
 saveRDS(dt.AirDecay.He.NoMaster.TBM, "DataOutput/dt.AirDecay.He.NoMaster.TBM.RDS")
 
 
+# This is just to see correlation between WP & MC on failures
+dt.Failure <- dt.CompleteProcessTiming.1stRecord[dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_WP`== "FAIL" |  dt.CompleteProcessTiming.1stRecord$`1st_LeakTestResult_MC` == "FAIL", ]
 
+dt.Failure$LeakRateWP <- dt.Failure$`1st_LeakRate_WP`
+dt.Failure$LeakRateMC <- dt.Failure$`1st_LeakRate_MC`
+dt.Failure$LeakRateHe <- dt.Failure$`1st_LeakRate_He`*1000000
 
+dt.Failure <- dt.Failure[dt.Failure$LeakRateWP < 50, ]
+dt.Failure <- dt.Failure[dt.Failure$LeakRateMC < max(dt.Failure$LeakRateMC), ]
+dt.Failure <- dt.Failure[dt.Failure$LeakRateHe < 50, ]
 
+ggscatter(dt.Failure, x = "LeakRateWP", y = "LeakRateMC", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Air Decay Leak Rate (WP)", ylab = "Air Decay Leak Rate (MC)")
+
+ggscatter(dt.Failure, x = "LeakRateWP", y = "LeakRateHe", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Air Decay Leak Rate (WP)", ylab = "Helium Leak Rate")
+
+ggscatter(dt.Failure, x = "LeakRateMC", y = "LeakRateHe", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Air Decay Leak Rate (MC)", ylab = "Helium Leak Rate")
 
 
 

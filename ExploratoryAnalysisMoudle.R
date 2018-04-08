@@ -461,6 +461,7 @@ Process.Monthly.Xbar_SChart = function(dt) {
   ## This function is to process control limits of x-bar S chart
   ## Please clone the date/time column as "UseTime"
   ## Please clone the target value for SPC control as "UseData"
+  ## Ensure there is a column named "Result" to represent leak test result
   
   # # Test Variable
   # dt.source <- dt.AirDecay.WP.NoMaster.XSChart
@@ -496,6 +497,42 @@ Process.Monthly.Xbar_SChart = function(dt) {
   
   return(dt)
 }
+
+
+Daily.Statics.General = function(dt.source) {
+  ## This function is just to calculate statics. 
+  ## No duplicates will be removed by this function.
+  ## Please clone the date/time column as "UseTime"
+  ## Please clone the target value for SPC control as "UseData"
+  ## Ensure there is a column named "Result" to represent leak test result
+  
+  # # Test Variable
+  # dt.source <- dt.AirDecay.WP.NoMaster.TBM
+  
+  # sort dataset in order of time
+  dt.source <- dt.source[order(dt.source$UseTime, decreasing = FALSE),]
+  
+  # Do statics of dataset as per set time period
+  dt <- dt.source %>%
+    group_by(Period = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
+    summarize(Qty = n(),
+              RejectPercent = (sum(Result=="FAIL") / Qty)*100,
+              Avg.LeakRate = mean(UseData), 
+              Stdev.LeakRate = sd(UseData),
+              Max.LeakRate = max(UseData), 
+              Min.LeakRate = min(UseData),
+              Range.LeakRate = (Max.LeakRate - Min.LeakRate)
+    )
+  
+  # #Remove NA of Stdev due to low qty (count=1)
+  # dt <- dt[complete.cases(dt),]
+  
+  
+  return(dt) 
+}
+
+
+
 
 
 Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
@@ -997,7 +1034,7 @@ Plot.LineChart.Date = function(dt, VARx, VARy, nominal, lsl, usl, Mean, Sigma, T
             xlab(VARx) +
             ylab(VARy) +
             ggtitle(paste(Title) ) +
-            scale_x_date(date_breaks = "1 day", labels = date_format("%d/%b")) + 
+            scale_x_date(date_breaks = "1 day", labels = date_format("%d/%b")) +
             theme(text = element_text(size=10), axis.text.x = element_text(angle = 90))
   # print(g)
   
