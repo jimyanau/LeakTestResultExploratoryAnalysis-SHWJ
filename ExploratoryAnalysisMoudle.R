@@ -70,7 +70,7 @@ Extract.LeakTestStation.Data = function(InputFile) {
         dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
         
         #clean spacer at barcode
-        dt[ , part_id := as.character(gsub("    ", "", part_id))]
+        dt[ , part_id := as.character(gsub(" ", "", part_id))]
         
         #Assemble Date/Time
         # Convert time zone to queensland as there was no daylight saving at QLD
@@ -118,7 +118,7 @@ Extract.InspectionData = function(InputFile) {
   dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
   
   #clean spacer at barcode
-  dt[ , part_id := as.character(gsub("    ", "", part_id))]
+  dt[ , part_id := as.character(gsub(" ", "", part_id))]
   
   # Convert dat time into correct format
   # Use MEL as time zone becasue the inspection station got daylight savings.
@@ -177,7 +177,7 @@ Extract.PinningStation = function(InputFile) {
   dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
   
   #clean spacer at barcode
-  dt[ , part_id := as.character(gsub("    ", "", part_id))]
+  dt[ , part_id := as.character(gsub(" ", "", part_id))]
   
   #Assemble Date/Time
   # Convert time zone to queensland as there was no daylight saving at QLD
@@ -227,7 +227,7 @@ Extract.FIPGStation = function(InputFile) {
   dt <- dt[grepl("XBA",dt$part_id, ignore.case=TRUE), ]
   
   #clean spacer at barcode
-  dt[ , part_id := as.character(gsub("    ", "", part_id))]
+  dt[ , part_id := as.character(gsub(" ", "", part_id))]
   
   #Assemble Date/Time
   # Convert time zone to queensland as there was no daylight saving at QLD
@@ -260,6 +260,10 @@ KeepOldestRecord.FIPGStation = function(dt) {
   return(dt)
   
 }
+
+
+
+
 
 
 Process.LeakTest.Result.WP = function(dt) {
@@ -398,6 +402,60 @@ Process.LeakTest.Master.Data = function(dt) {
   
   return(dt) 
 }
+
+
+Add.Suportive.Cols.to.LeakTestStation = function(dt) {
+  ## This function is to assemble supportive columns into dataset from SH WJ Leak test station
+  
+  # # Test Variable
+  # dt <- dt.AirDecay.WP.NoMaster.TBM
+  
+  # dt <- data.table(dt)
+  
+  # sort dataset in order of time
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # assemble supportive columns
+  dt$ID <- seq.int(nrow(dt))
+  dt$Month <- reorder(format(dt$LeakTestDateTime,'%b-%y'),dt$LeakTestDateTime)
+  dt$Week <- reorder(format(dt$LeakTestDateTime,'Wk%W-%y'),dt$LeakTestDateTime)
+  dt$Date <- reorder(format(dt$LeakTestDateTime,'%d-%b-%y'),dt$LeakTestDateTime)
+  dt$Hour <- reorder(format(dt$LeakTestDateTime,'%d%b%y %H:00'),dt$LeakTestDateTime)
+  
+  # subset failures to calculate time between failures
+  dt.Fail.TestTime <- dt[ Result=="FAIL",]
+  
+  # sort dataset in order of test time
+  dt.Fail.TestTime <- dt.Fail.TestTime[order(dt.Fail.TestTime$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Calculate time between failures on testing time using tail & head function
+  dt.Fail.TestTime$TBF_TestTime_Min[2:nrow(dt.Fail.TestTime)] <- as.numeric(tail(dt.Fail.TestTime$LeakTestDateTime, -1) - head(dt.Fail.TestTime$LeakTestDateTime, -1),units="mins")
+  dt.Fail.TestTime$TBF_TestTime_Min <- round(dt.Fail.TestTime$TBF_TestTime_Min,1)
+  dt.Fail.TestTime$TBF_TestTime_Hour[2:nrow(dt.Fail.TestTime)] <- as.numeric(tail(dt.Fail.TestTime$LeakTestDateTime, -1) - head(dt.Fail.TestTime$LeakTestDateTime, -1),units="hours")
+  dt.Fail.TestTime$TBF_TestTime_Hour <- round(dt.Fail.TestTime$TBF_TestTime_Hour,1)
+  # dt.Fail.TestTime$TBF_TestTime[2:nrow(dt.Fail.TestTime)] <- tail(dt.Fail.TestTime$ID, -1) - head(dt.Fail.TestTime$ID, -1) 
+  
+  # sort dataset in order of cast time
+  dt.Fail.TestTime <- dt.Fail.TestTime[order(dt.Fail.TestTime$CastDateTime, decreasing = FALSE),]
+  
+  # Calculate time between failures on casting time using tail & head function
+  # Pls notice that if TBF of casting time is 0, it means that the same parts was tested again
+  dt.Fail.TestTime$TBF_CastTime_Min[2:nrow(dt.Fail.TestTime)] <- as.numeric(tail(dt.Fail.TestTime$CastDateTime, -1) - head(dt.Fail.TestTime$CastDateTime, -1),units="mins")
+  dt.Fail.TestTime$TBF_CastTime_Min <- round(dt.Fail.TestTime$TBF_CastTime_Min,1)
+  dt.Fail.TestTime$TBF_CastTime_Hour[2:nrow(dt.Fail.TestTime)] <- as.numeric(tail(dt.Fail.TestTime$CastDateTime, -1) - head(dt.Fail.TestTime$CastDateTime, -1),units="hours")
+  dt.Fail.TestTime$TBF_CastTime_Hour <- round(dt.Fail.TestTime$TBF_CastTime_Hour,1)  
+  
+  # sort dataset in order of test time
+  dt.Fail.TestTime <- dt.Fail.TestTime[order(dt.Fail.TestTime$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Merge time between failues into otiginal dataset
+  dt <- merge(dt, dt.Fail.TestTime[, c("ID", "TBF_TestTime_Min", "TBF_TestTime_Hour", "TBF_CastTime_Min", "TBF_CastTime_Hour")], 
+              by.x = "ID", by.y = "ID", all.x = TRUE)
+  
+  
+  return(dt)
+}
+
 
 
 Daily.Statics.AirDecay.WP = function(dt.source, lsl, usl) {
@@ -1840,5 +1898,9 @@ Plot.SinglePoint.WP.Histogram = function(dt, nominal, lsl, usl, Title){
   
   multiplot(g.LT,  cols=1)
 }
+
+
+
+
 
 
