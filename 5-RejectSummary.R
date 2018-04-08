@@ -71,7 +71,7 @@ dt.MonthlyStat.Air.MC <- dt.AirDecay.MC.NoMaster.Latest %>%
                                         Range.LeakRate = (Max.LeakRate - Min.LeakRate)  )
 
 
-# Monthly descriptive statics of Air Decay Test - MC
+# Monthly descriptive statics of Helium Test
 dt.MonthlyStat.Air.He <- dt.AirDecay.He.NoMaster.Latest %>%
                           group_by(Date = floor_date(LeakTestDateTime, "1 month")) %>%
                           # group_by(Month = format(floor_date(LeakTestDateTime, "1 month"), "%b-%y")) %>%
@@ -117,24 +117,6 @@ g.Monthly.NGRate <- ggplot(dt.MonthlyStat.Combined, aes(x= Date.WP)) +
                           ggtitle(paste("SH WJ Leak Test Monthly Reject Percentage" )) +
                           scale_x_datetime(date_breaks = "1 month", labels = date_format("%b-%y")) +
                           theme(text = element_text(size=15), axis.text.x = element_text(angle = 90),legend.position="bottom")
-
-
-# ## Box Plot the leak rate by Die #
-
-# add column for month
-dt.AirDecay.WP.NoMaster.Latest$Month <- reorder(format(dt.AirDecay.WP.NoMaster.Latest$LeakTestDateTime,'%b-%y'),dt.AirDecay.WP.NoMaster.Latest$LeakTestDateTime)
-
-ggplot(dt.AirDecay.WP.NoMaster.Latest[air_decay_wp<max(air_decay_wp)], aes(x=Month, y=air_decay_wp, fill=CastDie)) +
-  scale_y_continuous(limits=c(-1, 1), expand = c(0, 0))+
-  # scale_x_datetime(date_breaks = "1 month", labels = date_format("%b-%y")) +
-  geom_boxplot() +
-  # geom_jitter(width = .2) +
-  xlab("Month") +
-  ylab("Leak Rate") +
-  scale_fill_brewer(palette="Dark1")+
-  ggtitle(paste("SH WJ Air Decay Leak Test (WP) Monthly Trend - Die Comparison" )) +
-  facet_wrap(~as.factor(CastMC), nrow=2) + 
-  theme(text = element_text(size=15), axis.text.x = element_text(angle = 90),legend.position="bottom")
 
 
 
