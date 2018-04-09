@@ -48,7 +48,7 @@ Plot.SinglePoint.MC.ControlChart(dt.period2, 0, -6, 6, "Air Decay MC Leak Rate r
 # Plot histogram of time between failures in testing time
 g.TBF.Test <- ggplot(dt.period2[dt.period2$Result == "FAIL", ], 
               aes(x=TBF_TestTime_Min)) +
-              geom_histogram(binwidth=1, alpha=.5, position="identity", colour='red', fill = 'red') +
+              geom_histogram(binwidth=5, alpha=.5, position="identity", colour='red', fill = 'red') +
               # geom_density() +
               # geom_text(aes(label=dt.period2$TBF_TestTime_Min,vjust=1.5)) +
               scale_x_continuous(breaks=c(0,10,20,30,40,50,100,150),limits = c(0, 150)) +
@@ -72,7 +72,7 @@ g.CBF.Test <- ggplot(dt.period2[dt.period2$Result == "FAIL", ],
 # Plot histogram of time between failures in cast time
 g.TBF.Cast <- ggplot(dt.period2[dt.period2$Result == "FAIL", ], 
              aes(x=TBF_CastTime_Min)) +
-              geom_histogram(binwidth=1, alpha=.5, position="identity", colour='red', fill = 'red') +
+              geom_histogram(binwidth=5, alpha=.5, position="identity", colour='red', fill = 'red') +
               # geom_density() +
               scale_x_continuous(breaks=c(0,10,20,30,40,50,100,150),limits = c(0, 150)) +
               xlab("Minutes btw Failures - Casting Time") +
@@ -135,10 +135,13 @@ qic(y= dt.period2.Master$air_decay_mc, x=dt.period2.Master$LeakTestDateTime, cha
 # Plot comboined chart with multiple information
 dt.TempHumidity <- readRDS("DataOutput/dt.TempHumidity.RDS")
 
-Plot.SinglePoint.MC.Type3(dt.AirDecay.MC.NoMaster.TBM, 0, -6, 6, 
+Plot.SinglePoint.MC.Type2.1(dt.AirDecay.MC.NoMaster.TBM, 0, -6, 6, 
                           " WC - 08/MAR/2018", dt.AirDecay.MC.Master, "XBA1601290101A23", 
                           as.Date("2018-03-07"), as.Date("2018-03-09") )
 
+Plot.SinglePoint.MC.Type2.2(dt.AirDecay.MC.NoMaster.TBM, 0, -6, 6, 
+                            " WC - 08/MAR/2018", dt.AirDecay.MC.Master, "XBA1601290101A23", 
+                            as.Date("2018-03-07"), as.Date("2018-03-09") )
 #############################################################################################
 
 

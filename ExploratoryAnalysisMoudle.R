@@ -1745,6 +1745,78 @@ Plot.SinglePoint.MC.Type2 = function(dt, nominal, lsl, usl, Title, dt.Master, ID
   
 }
 
+Plot.SinglePoint.MC.Type2.1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part
+  ## 3) Plot leak rate trend as per casting date
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.MC <- Plot.SinglePoint.MC.ControlChart.SmallScale.CombinedMaster(dt, nominal, lsl, usl, 
+                                                                   Title, dt.Master, ID.Master, 
+                                                                   Date.Start, Date.End )
+  
+  # Plot Leak Rate Chart by cast date / time
+  g.LeakRate.CastDate.MC <- Plot.SinglePoint.MC.ControlChart.SmallScale.CastTime(dt, nominal, lsl, usl, Title)
+
+  multiplot(g.LeakRate.MC, g.LeakRate.CastDate.MC, cols=1)
+  
+}
+
+Plot.SinglePoint.MC.Type2.2 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part
+  ## 3) Plot Temperatur and Humidity trend at the same period of time
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.MC <- Plot.SinglePoint.MC.ControlChart.SmallScale.CombinedMaster(dt, nominal, lsl, usl, 
+                                                                              Title, dt.Master, ID.Master, 
+                                                                              Date.Start, Date.End )
+  
+  # # Plot Leak Rate Chart by cast date / time
+  # g.LeakRate.CastDate.MC <- Plot.SinglePoint.MC.ControlChart.SmallScale.CastTime(dt, nominal, lsl, usl, Title)
+  
+  # Plot Temp and Humidity trend
+  g.Temp <- Plot.SinglePoint.Temp(dt.TempHumidity, "Assembly Cell Temp Trend",Date.Start, Date.End)
+  g.Humidity <- Plot.SinglePoint.Humidity(dt.TempHumidity, "Assembly Cell Humidity Trend",Date.Start, Date.End)
+  
+  multiplot(g.LeakRate.MC, g.Temp, g.Humidity, cols=1)
+  
+}
+
 Plot.SinglePoint.WP.SmallScale.Type1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
   ## This function is to 
@@ -2141,12 +2213,43 @@ Plot.SinglePoint.MC.ControlChart.CastTime = function(dt, nominal, lsl, usl, Titl
     geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +
     xlab("Cast Date/Time") +
     ylab("Leak Rate") +
+    # scale_y_continuous(limits = c(0, 50)) +
     ggtitle(paste("QUK2 SH WJ Leak Rate by Cast Date/Time - ", Title )) +
     scale_x_datetime(expand = c(0, 0), date_breaks = "1 day", labels = date_format("%d/%b")) +
     theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
   return(g.LT)
 }
 
+Plot.SinglePoint.MC.ControlChart.SmallScale.CastTime = function(dt, nominal, lsl, usl, Title){
+  # #Var for testing
+  # dt <- dt.ng.Rule2
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  
+  
+  # #prepare contorl lines for ave. chart
+  # SpecLine.ave <- data.frame(ControlValue = c(lsl, nominal,  usl),
+  #                            ControlType = c("LSL", "Nominal",  "USL" ))
+  
+  
+  g.LT <- ggplot(dt, aes(x = dt$CastDateTime, y=dt$air_decay_mc, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
+    scale_color_brewer(palette="Dark2") +
+    # geom_line()+
+    geom_point()+
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, linetype = ControlType ), size=1) +
+    geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=nominal, colour = 'Nominal' ),  linetype='solid', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    xlab("Cast Date/Time") +
+    ylab("Leak Rate") +
+    scale_y_continuous(limits = c(0, 50)) +
+    ggtitle(paste("QUK2 SH WJ Leak Rate by Cast Date/Time - ", Title )) +
+    scale_x_datetime(expand = c(0, 0), date_breaks = "1 day", labels = date_format("%d/%b")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  return(g.LT)
+}
 
 Plot.SinglePoint.WP.LeakRate.Dynamic = function(dt, nominal, lsl, usl, Title){
   # #Var for testing

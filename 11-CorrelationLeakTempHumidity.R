@@ -181,34 +181,45 @@ dt.HourlyStat.Combined.MC <- dt.HourlyStat.Combined.MC[dt.HourlyStat.Combined.MC
 dt.HourlyStat.Combined.He <- dt.HourlyStat.Combined.He[dt.HourlyStat.Combined.He$Avg.LeakRate<10,]
 
 # Do correlation
-ggscatter(dt.HourlyStat.Combined.WP, x = "Ave.Temp", y = "Avg.LeakRate", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "Ave. Temp", ylab = "Ave. Leak Rate - Air Decay WP")
+g.Hourly.Cor.WP.Temp <- ggscatter(dt.HourlyStat.Combined.WP, x = "Ave.Temp", y = "Avg.LeakRate", 
+                              add = "reg.line", conf.int = TRUE, 
+                              cor.coef = TRUE, cor.method = "pearson",
+                              title = "Correlation Leak Rate Air Decay WP vs Temp (Hourly Ave. Data)",
+                              xlab = "Ave. Temp", ylab = "Ave. Leak Rate - Air Decay WP")
 
-ggscatter(dt.HourlyStat.Combined.WP, x = "Ave.Humidity", y = "Avg.LeakRate", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "Ave.Humidity", ylab = "Ave. Leak Rate - Air Decay WP")
+g.Hourly.Cor.WP.Humidity <- ggscatter(dt.HourlyStat.Combined.WP, x = "Ave.Humidity", y = "Avg.LeakRate", 
+                                add = "reg.line", conf.int = TRUE, 
+                                cor.coef = TRUE, cor.method = "pearson",
+                                title = "Correlation Leak Rate Air Decay WP vs Humidity (Hourly Ave. Data)",
+                                xlab = "Ave.Humidity", ylab = "Ave. Leak Rate - Air Decay WP")
 
-ggscatter(dt.HourlyStat.Combined.MC, x = "Ave.Temp", y = "Avg.LeakRate", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "Ave. Temp", ylab = "Ave. Leak Rate - Air Decay MC")
+multiplot(g.Hourly.Cor.WP.Temp, g.Hourly.Cor.WP.Humidity, cols=1)
 
-ggscatter(dt.HourlyStat.Combined.MC, x = "Ave.Humidity", y = "Avg.LeakRate", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "Ave.Humidity", ylab = "Ave. Leak Rate - Air Decay MC")
+g.Hourly.Cor.MC.Temp <- ggscatter(dt.HourlyStat.Combined.MC, x = "Ave.Temp", y = "Avg.LeakRate", 
+                                add = "reg.line", conf.int = TRUE, 
+                                cor.coef = TRUE, cor.method = "pearson",
+                                title = "Correlation Leak Rate Air Decay MC vs Temp (Hourly Ave. Data)",
+                                xlab = "Ave. Temp", ylab = "Ave. Leak Rate - Air Decay MC")
 
-ggscatter(dt.HourlyStat.Combined.He, x = "Ave.Temp", y = "Avg.LeakRate", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "Ave. Temp", ylab = "Ave. Leak Rate - Helium Test")
+g.Hourly.Cor.MC.Humidity <- ggscatter(dt.HourlyStat.Combined.MC, x = "Ave.Humidity", y = "Avg.LeakRate", 
+                                add = "reg.line", conf.int = TRUE, 
+                                cor.coef = TRUE, cor.method = "pearson",
+                                title = "Correlation Leak Rate Air Decay MC vs Humidity (Hourly Ave. Data)",
+                                xlab = "Ave.Humidity", ylab = "Ave. Leak Rate - Air Decay MC")
 
-ggscatter(dt.HourlyStat.Combined.He, x = "Ave.Humidity", y = "Avg.LeakRate", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "Ave.Humidity", ylab = "Ave. Leak Rate - Helium Test")
+multiplot(g.Hourly.Cor.MC.Temp, g.Hourly.Cor.MC.Humidity, cols=1)
 
 
+g.Hourly.Cor.He.Temp <- ggscatter(dt.HourlyStat.Combined.He, x = "Ave.Temp", y = "Avg.LeakRate", 
+                                add = "reg.line", conf.int = TRUE, 
+                                cor.coef = TRUE, cor.method = "pearson",
+                                title = "Correlation Leak Rate Helium vs Temp (Hourly Ave. Data)",
+                                xlab = "Ave. Temp", ylab = "Ave. Leak Rate - Helium Test")
+
+g.Hourly.Cor.He.Humidity <- ggscatter(dt.HourlyStat.Combined.He, x = "Ave.Humidity", y = "Avg.LeakRate", 
+                                add = "reg.line", conf.int = TRUE, 
+                                cor.coef = TRUE, cor.method = "pearson",
+                                title = "Correlation Leak Rate Helium vs Humidity (Hourly Ave. Data)",
+                                xlab = "Ave.Humidity", ylab = "Ave. Leak Rate - Helium Test")
+
+multiplot(g.Hourly.Cor.He.Temp, g.Hourly.Cor.He.Humidity, cols=1)
