@@ -1,4 +1,4 @@
-## This code is to investigate the data of time between failures in Jan-18
+## This code is to investigate the data of time between failures in MAR-18
 
 rm(list=ls())
 
