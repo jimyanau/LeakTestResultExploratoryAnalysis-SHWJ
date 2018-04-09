@@ -66,10 +66,13 @@ ggplot(dt.AirDecay.WP.NoMaster.Latest, aes(x=Month, y=air_decay_wp, fill=CastDie
 ### Box Plot the leak rate of Air Decay MC by MC/Die #
 # add column for month
 dt.AirDecay.MC.NoMaster.Latest$Month <- reorder(format(dt.AirDecay.MC.NoMaster.Latest$LeakTestDateTime,'%b-%y'),dt.AirDecay.MC.NoMaster.Latest$LeakTestDateTime)
-# Plot Boxplot
+# Plot Boxplot with log transformation
 ggplot(dt.AirDecay.MC.NoMaster.Latest, aes(x=Month, y=air_decay_mc, fill=CastDie)) +
   scale_y_continuous(limits=c(-5, 5), expand = c(0, 0))+
+  # geom_boxplot(varwidth=TRUE, alpha=0.3) +
   geom_boxplot() +
+  geom_hline(aes(yintercept = 6, colour="USL"),  size=1) +
+  geom_hline(aes(yintercept = -6, colour="LSL"),  size=1) +
   # geom_jitter(width = .2) +
   xlab("Month") +
   ylab("Leak Rate") +

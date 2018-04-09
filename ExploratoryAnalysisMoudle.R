@@ -409,9 +409,7 @@ Add.Suportive.Cols.to.LeakTestStation = function(dt) {
   
   # # Test Variable
   # dt <- dt.AirDecay.WP.NoMaster.TBM
-  
-  # dt <- data.table(dt)
-  
+
   # sort dataset in order of time
   dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
   
@@ -421,6 +419,12 @@ Add.Suportive.Cols.to.LeakTestStation = function(dt) {
   dt$Week <- reorder(format(dt$LeakTestDateTime,'Wk%W-%y'),dt$LeakTestDateTime)
   dt$Date <- reorder(format(dt$LeakTestDateTime,'%d-%b-%y'),dt$LeakTestDateTime)
   dt$Hour <- reorder(format(dt$LeakTestDateTime,'%d%b%y %H:00'),dt$LeakTestDateTime)
+  
+  
+  # Setup ID as per casting time sequence
+  dt <- dt[order(dt$CastDateTime, decreasing = FALSE),]
+  dt$ID_Cast <- seq.int(nrow(dt))
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
   
   # subset failures to calculate time between failures
   dt.Fail.TestTime <- dt[ Result=="FAIL",]
@@ -433,10 +437,11 @@ Add.Suportive.Cols.to.LeakTestStation = function(dt) {
   dt.Fail.TestTime$TBF_TestTime_Min <- round(dt.Fail.TestTime$TBF_TestTime_Min,1)
   dt.Fail.TestTime$TBF_TestTime_Hour[2:nrow(dt.Fail.TestTime)] <- as.numeric(tail(dt.Fail.TestTime$LeakTestDateTime, -1) - head(dt.Fail.TestTime$LeakTestDateTime, -1),units="hours")
   dt.Fail.TestTime$TBF_TestTime_Hour <- round(dt.Fail.TestTime$TBF_TestTime_Hour,1)
-  # dt.Fail.TestTime$TBF_TestTime[2:nrow(dt.Fail.TestTime)] <- tail(dt.Fail.TestTime$ID, -1) - head(dt.Fail.TestTime$ID, -1) 
+  dt.Fail.TestTime$CBF_TestTime[2:nrow(dt.Fail.TestTime)] <- tail(dt.Fail.TestTime$ID, -1) - head(dt.Fail.TestTime$ID, -1)
   
   # sort dataset in order of cast time
   dt.Fail.TestTime <- dt.Fail.TestTime[order(dt.Fail.TestTime$CastDateTime, decreasing = FALSE),]
+
   
   # Calculate time between failures on casting time using tail & head function
   # Pls notice that if TBF of casting time is 0, it means that the same parts was tested again
@@ -444,12 +449,13 @@ Add.Suportive.Cols.to.LeakTestStation = function(dt) {
   dt.Fail.TestTime$TBF_CastTime_Min <- round(dt.Fail.TestTime$TBF_CastTime_Min,1)
   dt.Fail.TestTime$TBF_CastTime_Hour[2:nrow(dt.Fail.TestTime)] <- as.numeric(tail(dt.Fail.TestTime$CastDateTime, -1) - head(dt.Fail.TestTime$CastDateTime, -1),units="hours")
   dt.Fail.TestTime$TBF_CastTime_Hour <- round(dt.Fail.TestTime$TBF_CastTime_Hour,1)  
+  dt.Fail.TestTime$CBF_CastTime[2:nrow(dt.Fail.TestTime)] <- tail(dt.Fail.TestTime$ID_Cast, -1) - head(dt.Fail.TestTime$ID_Cast, -1)
   
   # sort dataset in order of test time
   dt.Fail.TestTime <- dt.Fail.TestTime[order(dt.Fail.TestTime$LeakTestDateTime, decreasing = FALSE),]
   
   # Merge time between failues into otiginal dataset
-  dt <- merge(dt, dt.Fail.TestTime[, c("ID", "TBF_TestTime_Min", "TBF_TestTime_Hour", "TBF_CastTime_Min", "TBF_CastTime_Hour")], 
+  dt <- merge(dt, dt.Fail.TestTime[, c("ID", "TBF_TestTime_Min", "TBF_TestTime_Hour", "CBF_TestTime", "TBF_CastTime_Min", "TBF_CastTime_Hour", "CBF_CastTime")], 
               by.x = "ID", by.y = "ID", all.x = TRUE)
   
   
@@ -1417,6 +1423,37 @@ Plot.SinglePoint.WP.ControlChart = function(dt, nominal, lsl, usl, Title){
   return(g.LT)
 }
 
+
+Plot.SinglePoint.MC.ControlChart = function(dt, nominal, lsl, usl, Title){
+  # #Var for testing
+  # dt <- dt.ng.Rule2
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  
+  
+  #prepare contorl lines for ave. chart
+  # SpecLine.ave <- data.frame(ControlValue = c(lsl, nominal,  usl),
+  #                            ControlType = c("LSL", "Nominal",  "USL" ))
+  
+  
+  g.LT <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_mc)) +
+    geom_line()+
+    geom_point()+
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
+    geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=nominal, colour = 'Nominal' ),  linetype='solid', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +             
+    xlab("Date/Time") +
+    ylab("Leak Rate") +
+    ggtitle(paste("QUK2 SH WJ Leak Rate - ", Title )) +
+    scale_x_datetime(expand = c(0, 0), date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  return(g.LT)
+}
+
+
 Plot.SinglePoint.WP.ControlChart.CombinedMaster = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   # #Var for testing
   # dt <- dt.AirDecay.WP.NoMaster
@@ -1460,6 +1497,49 @@ Plot.SinglePoint.WP.ControlChart.CombinedMaster = function(dt, nominal, lsl, usl
   return(g.LT)
 }
 
+
+Plot.SinglePoint.MC.ControlChart.CombinedMaster = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2018-01-15")
+  # Date.End = as.Date("2018-01-20")
+  
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start 
+           & date(dt$LeakTestDateTime) <= Date.End, ]
+  
+  g.LT <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_mc, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
+    scale_color_brewer(palette="Dark2") +
+    # geom_line()+
+    geom_point()+
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
+    geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=nominal, colour = 'Nominal' ),  linetype='solid', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +             
+    xlab("Date/Time") +
+    ylab("Leak Rate") +
+    ggtitle(paste("QUK2 SH WJ Leak Rate - ", Title )) +
+    scale_x_datetime(expand = c(0, 0), date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  # subset master part data
+  dt.Master <- dt.Master[date(dt.Master$LeakTestDateTime) >= Date.Start 
+                         & date(dt.Master$LeakTestDateTime) <= Date.End 
+                         & dt.Master$part_id == ID.Master, ]
+  dt.Master <- dt.Master[order(dt.Master$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot Master Leak Rate into previous leak rate chart
+  g.LT <- g.LT + geom_point(data = dt.Master, aes(LeakTestDateTime, air_decay_mc, shape=part_id), color = 'red', size = 5)
+  
+  
+  return(g.LT)
+}
 
 Plot.SinglePoint.WP.ControlChart.SmallScale.CombinedMaster = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   # #Var for testing
@@ -1505,6 +1585,49 @@ Plot.SinglePoint.WP.ControlChart.SmallScale.CombinedMaster = function(dt, nomina
   return(g.LT)
 }
 
+Plot.SinglePoint.MC.ControlChart.SmallScale.CombinedMaster = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2018-01-15")
+  # Date.End = as.Date("2018-01-20")
+  
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start 
+           & date(dt$LeakTestDateTime) <= Date.End, ]
+  
+  g.LT <- ggplot(dt, aes(x = dt$LeakTestDateTime, y=dt$air_decay_mc, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
+    scale_color_brewer(palette="Dark2") +
+    geom_line()+
+    geom_point()+
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, colour = ControlType ),  size=1) +
+    geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=nominal, colour = 'Nominal' ),  linetype='solid', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +             
+    xlab("Date/Time") +
+    ylab("Leak Rate") +
+    scale_y_continuous(limits = c(-6, 8)) + 
+    ggtitle(paste("QUK2 SH WJ Leak Rate - ", Title )) +
+    scale_x_datetime(expand = c(0, 0), date_breaks = "6 hour", labels = date_format("%d/%b %H:00")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  
+  # subset master part data
+  dt.Master <- dt.Master[date(dt.Master$LeakTestDateTime) >= Date.Start 
+                         & date(dt.Master$LeakTestDateTime) <= Date.End 
+                         & dt.Master$part_id == ID.Master, ]
+  dt.Master <- dt.Master[order(dt.Master$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot Master Leak Rate into previous leak rate chart
+  g.LT <- g.LT + geom_point(data = dt.Master, aes(LeakTestDateTime, air_decay_mc, shape=part_id), color = 'red', size = 5)
+  
+  
+  return(g.LT)
+}
 
 Plot.SinglePoint.WP.Type1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
@@ -1582,6 +1705,46 @@ Plot.SinglePoint.WP.Type2 = function(dt, nominal, lsl, usl, Title, dt.Master, ID
 }
 
 
+Plot.SinglePoint.MC.Type2 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part
+  ## 3) Plot leak rate trend as per casting date
+  ## 4) Plot Temperatur and Humidity trend at the same period of time
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.MC <- Plot.SinglePoint.MC.ControlChart.CombinedMaster(dt, nominal, lsl, usl, 
+                                                                   Title, dt.Master, ID.Master, 
+                                                                   Date.Start, Date.End )
+  
+  # Plot Leak Rate Chart by cast date / time
+  g.LeakRate.CastDate.MC <- Plot.SinglePoint.MC.ControlChart.CastTime(dt, nominal, lsl, usl, Title)
+  
+  # Plot Temp and Humidity trend
+  g.Temp <- Plot.SinglePoint.Temp(dt.TempHumidity, "Assembly Cell Temp Trend",Date.Start, Date.End)
+  g.Humidity <- Plot.SinglePoint.Humidity(dt.TempHumidity, "Assembly Cell Humidity Trend",Date.Start, Date.End)
+  
+  
+  multiplot(g.LeakRate.MC, g.Temp, g.Humidity, g.LeakRate.CastDate.MC, cols=1)
+  
+}
+
 Plot.SinglePoint.WP.SmallScale.Type1 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
   ## This function is to 
@@ -1657,6 +1820,49 @@ Plot.SinglePoint.WP.Type3 = function(dt, nominal, lsl, usl, Title, dt.Master, ID
   multiplot(g.LeakRate.WP, g.Temp, g.Humidity, g.LeakRate.CastDate.WP, cols=1)
   
 }
+
+
+Plot.SinglePoint.MC.Type3 = function(dt, nominal, lsl, usl, Title, dt.Master, ID.Master, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
+  
+  ## This function is to 
+  ## 1) subset data as per given period of time, 
+  ## 2) then plot the leak rate of individual parts and master part. 
+  ##      The leak rate will be ploted at small scale for better observation.
+  ## 3) Plot leak rate trend as per casting date
+  ## 4) Plot Temperatur and Humidity trend at the same period of time
+  
+  # #Var for testing
+  # dt <- dt.AirDecay.WP.NoMaster
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  # dt.Master <- dt.AirDecay.WP.Master
+  # ID.Master ='XBA1601290101A23'
+  # Date.Start = as.Date("2016-01-01")
+  # Date.End = as.Date("2030-01-01")
+  
+  dt <- dt[date(dt$LeakTestDateTime) >= Date.Start & date(dt$LeakTestDateTime) <= Date.End ,]
+  
+  dt <- dt[order(dt$LeakTestDateTime, decreasing = FALSE),]
+  
+  # Plot leka rate chart combined with Master Part Data
+  g.LeakRate.MC <- Plot.SinglePoint.MC.ControlChart.SmallScale.CombinedMaster(dt, nominal, lsl, usl, 
+                                                                              Title, dt.Master, ID.Master, 
+                                                                              Date.Start, Date.End )
+  
+  # Plot Leak Rate Chart by cast date / time
+  g.LeakRate.CastDate.MC <- Plot.SinglePoint.MC.ControlChart.CastTime(dt, nominal, lsl, usl, Title)
+  
+  # Plot Temp and Humidity trend
+  g.Temp <- Plot.SinglePoint.Temp(dt.TempHumidity, "Assembly Cell Temp Trend",Date.Start, Date.End)
+  g.Humidity <- Plot.SinglePoint.Humidity(dt.TempHumidity, "Assembly Cell Humidity Trend",Date.Start, Date.End)
+  
+  
+  multiplot(g.LeakRate.MC, g.LeakRate.CastDate.MC , g.Temp, g.Humidity, cols=1)
+  
+}
+
 
 Plot.SinglePoint.Temp = function(dt, Title, Date.Start = as.Date("2016-01-01"), Date.End = as.Date("2030-01-01")){
   
@@ -1896,6 +2102,36 @@ Plot.SinglePoint.WP.ControlChart.CastTime = function(dt, nominal, lsl, usl, Titl
   
   
   g.LT <- ggplot(dt, aes(x = dt$CastDateTime, y=dt$air_decay_wp, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
+    scale_color_brewer(palette="Dark2") +
+    # geom_line()+
+    geom_point()+
+    # geom_hline(data=SpecLine.ave, aes(yintercept=ControlValue, linetype = ControlType ), size=1) +
+    geom_hline(aes(yintercept=lsl, colour = 'LSL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=nominal, colour = 'Nominal' ),  linetype='solid', show.legend = TRUE, size=1) +
+    geom_hline(aes(yintercept=usl, colour = 'USL' ), linetype='dashed', show.legend = TRUE, size=1) +
+    xlab("Cast Date/Time") +
+    ylab("Leak Rate") +
+    ggtitle(paste("QUK2 SH WJ Leak Rate by Cast Date/Time - ", Title )) +
+    scale_x_datetime(expand = c(0, 0), date_breaks = "1 day", labels = date_format("%d/%b")) +
+    theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+  return(g.LT)
+}
+
+Plot.SinglePoint.MC.ControlChart.CastTime = function(dt, nominal, lsl, usl, Title){
+  # #Var for testing
+  # dt <- dt.ng.Rule2
+  # nominal = 0
+  # lsl = -3
+  # usl = 2.1
+  # Title = "Air Decay WP"
+  
+  
+  # #prepare contorl lines for ave. chart
+  # SpecLine.ave <- data.frame(ControlValue = c(lsl, nominal,  usl),
+  #                            ControlType = c("LSL", "Nominal",  "USL" ))
+  
+  
+  g.LT <- ggplot(dt, aes(x = dt$CastDateTime, y=dt$air_decay_mc, shape= dt$CastMC_Die,colour = dt$CastMC_Die)) +
     scale_color_brewer(palette="Dark2") +
     # geom_line()+
     geom_point()+
