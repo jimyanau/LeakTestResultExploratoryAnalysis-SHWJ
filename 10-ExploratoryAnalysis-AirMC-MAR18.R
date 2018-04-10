@@ -128,9 +128,44 @@ ggplot(dt.period2.Master, aes(x = dt.period2.Master$LeakTestDateTime, y=dt.perio
             scale_x_datetime(date_breaks = "12 hour", labels = date_format("%d/%b %H:00")) +
             theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
 
+############ work on controls charts
 # I-MR Chart of OK Master
-qic(y= dt.period2.Master$air_decay_mc, x=dt.period2.Master$LeakTestDateTime, chart = 'i')
-## can qic generate control limit automatically?
+qic(y = dt.period2.Master$air_decay_mc, x= dt.period2.Master$LeakTestDateTime,
+    chart = 'i',
+    main  = 'I-MR Chart - OK Master Leak Rate (Air MC)',
+    ylab  = 'Test Date/Time',
+    xlab  = 'Leak Rate')
+
+
+qic(y = dt.period2$air_decay_mc, x= dt.period2$LeakTestDateTime,
+    chart = 'i',
+    main  = 'I-MR Chart - Leak Rate (Air MC)',
+    ylab  = 'Test Date/Time',
+    xlab  = 'Leak Rate')
+
+
+qic(y = dt.period2$air_decay_mc, x= dt.period2$LeakTestDateTime,
+    chart = 'mr',
+    main  = 'MR Chart - Leak Rate (Air MC)',
+    ylab  = 'Test Date/Time',
+    xlab  = 'Leak Rate')
+
+qic(y = dt.period2$air_decay_mc, x= dt.period2$LeakTestDateTime,
+    chart = 'i',
+    main  = 'X-bar Chart - Leak Rate (Air MC)',
+    ylab  = 'Test Date/Time',
+    xlab  = 'Leak Rate')
+
+qic(y = air_decay_mc, x= LeakTestDateTime, data = dt.period2,
+    chart = 's',
+    ylim = c(0,30),
+    main  = 'S Chart - Leak Rate (Air MC)',
+    ylab  = 'Test Date/Time',
+    xlab  = 'Leak Rate Stdev.')
+
+
+
+
 
 # Plot comboined chart with multiple information
 dt.TempHumidity <- readRDS("DataOutput/dt.TempHumidity.RDS")
@@ -144,5 +179,58 @@ Plot.SinglePoint.MC.Type2.2(dt.AirDecay.MC.NoMaster.TBM, 0, -6, 6,
                             as.Date("2018-03-07"), as.Date("2018-03-09") )
 #############################################################################################
 
+## Extend the dataset slightly
+dt.period2_1 <- dt.AirDecay.MC.NoMaster.TBM[dt.AirDecay.MC.NoMaster.TBM$UseTime >= as.Date("2018-03-05") & dt.AirDecay.MC.NoMaster.TBM$UseTime < as.Date("2018-03-10") , ]
+Plot.SinglePoint.MC.ControlChart(dt.period2_1, 0, -6, 6, "Air Decay MC Leak Rate run Chart (07~09/Mar/2018")
+
+dt.period2_1.NoRetest <- dt.period2_1[ dt.period2_1$TBF_CastTime_Min!=0, ]
+dt.period2_1.Retest <- dt.period2_1[ dt.period2_1$TBF_CastTime_Min==0, ]
+
+# Plot TBF along test time
+ggplot(dt.period2_1.NoRetest, aes(x = dt.period2_1.NoRetest$LeakTestDateTime, y=dt.period2_1.NoRetest$TBF_TestTime_Min)) +
+                      geom_line()+
+                      geom_point()+
+                      # geom_hline(aes(yintercept = mean(dt.period2.Master$air_decay_mc), colour="Mean"),  size=1) +
+                      # geom_hline(aes(yintercept = mean(dt.period2.Master$air_decay_mc) + 3*sd(dt.period2.Master$air_decay_mc), colour="UCL"),  size=1) +
+                      # geom_hline(aes(yintercept = mean(dt.period2.Master$air_decay_mc) - 3*sd(dt.period2.Master$air_decay_mc), colour="LCL"),  size=1) +
+                      xlab("Test Date/Time") +
+                      ylab("Mins between failures - Test Time") +
+                      ggtitle(paste("QUK2 SH WJ Air Decay MC - Time Between Failure")) +
+                      scale_x_datetime(date_breaks = "12 hour", labels = date_format("%d/%b %H:00")) +
+                      theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Plot TBF along cast time
+# Subset datset for shorter cast date
+dt.period2_2.NoRetest <- dt.period2_1.NoRetest[dt.period2_1.NoRetest$CastDateTime >= as.Date("2018-03-04") , ]
+
+ggplot(dt.period2_2.NoRetest, aes(x = dt.period2_2.NoRetest$CastDateTime, y=dt.period2_2.NoRetest$TBF_TestTime_Min)) +
+                                geom_line()+
+                                geom_point()+
+                                # geom_hline(aes(yintercept = mean(dt.period2.Master$air_decay_mc), colour="Mean"),  size=1) +
+                                # geom_hline(aes(yintercept = mean(dt.period2.Master$air_decay_mc) + 3*sd(dt.period2.Master$air_decay_mc), colour="UCL"),  size=1) +
+                                # geom_hline(aes(yintercept = mean(dt.period2.Master$air_decay_mc) - 3*sd(dt.period2.Master$air_decay_mc), colour="LCL"),  size=1) +
+                                xlab("Cast Date/Time") +
+                                ylab("Mins between failures - Cast Time") +
+                                ggtitle(paste("QUK2 SH WJ Air Decay MC - Cast Time Between Failure")) +
+                                scale_x_datetime(date_breaks = "12 hour", labels = date_format("%d/%b %H:00")) +
+                                theme(text = element_text(size=10),axis.text.x = element_text(angle = 90, hjust = 1))
+
+## Tidy retest data
+dt.period2_1.Retest2 <- dt.period2_1[dt.period2_1$part_id %in% dt.period2_1.Retest$part_id, ]
+dt.LeakRateDiff.Retest <- dt.period2_1.Retest2 %>%
+                                        group_by(part_id) %>%
+                                        summarize(Qty = n(),
+                                                  LeakRateDiff = max(air_decay_mc) - min(air_decay_mc) )
+
+## Plot Histogram of retest parts
+ggplot(dt.LeakRateDiff.Retest ) +
+                geom_histogram(aes(x=LeakRateDiff, fill="Leak Rate Difference"), binwidth=1, alpha=.5, position="identity", colour='red') +
+                # geom_histogram(aes(x=TBF_CastTime_Min, fill="TBF-Cast Time"), binwidth=5, alpha=.5, position="identity", colour='red') +
+                # geom_density() +
+                scale_x_continuous(limits = c(0, 50)) +
+                xlab("Leak Rate Difference at retest at cc/min") +
+                ylab("Counts") +
+                ggtitle(paste("QUK2 SH WJ Test Air Decay MC Failures - Retest Difference (08/Mar/2018)")) +
+                theme(text = element_text(size=10),legend.position="bottom")
 
 
