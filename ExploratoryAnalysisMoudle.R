@@ -675,6 +675,7 @@ Daily.Statics.AirDecay.MC = function(dt.source, lsl, usl) {
   dt <- dt.source %>%
     group_by(Date = as.Date(LeakTestDateTime, tz = "Australia/Melbourne")) %>%
     summarize(Qty = n(),
+              NGQty = sum(Result=="FAIL"),
               RejectPercent = (sum(Result=="FAIL") / Qty)*100,
               Avg.LeakRate = mean(air_decay_mc), 
               Stdev.LeakRate = sd(air_decay_mc),

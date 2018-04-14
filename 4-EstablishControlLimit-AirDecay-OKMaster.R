@@ -37,6 +37,9 @@ dt.AirDecay.WP.Master.Sample <- dt.AirDecay.WP.OKMaster[sample(nrow(dt.AirDecay.
 qqnorm(dt.AirDecay.WP.Master.Sample$air_decay_wp)
 qqline(dt.AirDecay.WP.Master.Sample$air_decay_wp, col = "red")
 
+Mean.LeakRate.WP.Master <- mean(dt.AirDecay.WP.Master.Sample$air_decay_wp)
+SD.LeakRate.WP.Master <- sd(dt.AirDecay.WP.Master.Sample$air_decay_wp)
+
 # g.Master.WP <- ggplot(dt.AirDecay.WP.Master.Sample, aes(x = dt.AirDecay.WP.Master.Sample$air_decay_wp)) +
 #                       geom_histogram(binwidth=0.1, alpha = 0.9, position = "dodge") +
 #                       scale_x_continuous(limits = c(-3, 3)) +
@@ -102,6 +105,9 @@ dt.AirDecay.MC.Master.Sample <- dt.AirDecay.MC.OKMaster[sample(nrow(dt.AirDecay.
 # Assess dataset
 qqnorm(dt.AirDecay.MC.Master.Sample$air_decay_mc)
 qqline(dt.AirDecay.MC.Master.Sample$air_decay_mc, col = "red")
+
+Mean.LeakRate.MC.Master <- mean(dt.AirDecay.MC.Master.Sample$air_decay_mc)
+SD.LeakRate.MC.Master <- sd(dt.AirDecay.MC.Master.Sample$air_decay_mc)
 
 g.Master.MC <- ggplot(dt.AirDecay.MC.Master.Sample, aes(x = dt.AirDecay.MC.Master.Sample$air_decay_mc)) +
                 geom_histogram(binwidth=0.1, alpha = 0.9, position = "dodge") +
