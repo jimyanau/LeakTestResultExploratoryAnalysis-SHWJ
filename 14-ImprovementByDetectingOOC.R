@@ -56,9 +56,9 @@ dt.DailyStat.MC.OKMaster <- dt.MC.OKMaster %>%
                                       Max.LeakRate = max(air_decay_mc),
                                       Min.LeakRate = min(air_decay_mc),
                                       Range.LeakRate = (Max.LeakRate - Min.LeakRate)) %>%
-                            mutate(OOC_1SD = ifelse(Avg.LeakRate>Mean.LeakRate.MC.Master+SD.LeakRate.MC.Master | Avg.LeakRate<Mean.LeakRate.MC.Master-SD.LeakRate.MC.Master,TRUE, FALSE),
-                                   OOC_2SD = ifelse(Avg.LeakRate>Mean.LeakRate.MC.Master+2*SD.LeakRate.MC.Master | Avg.LeakRate<Mean.LeakRate.MC.Master-2*SD.LeakRate.MC.Master,TRUE, FALSE),
-                                   OOC_3SD = ifelse(Avg.LeakRate>Mean.LeakRate.MC.Master+3*SD.LeakRate.MC.Master | Avg.LeakRate<Mean.LeakRate.MC.Master-3*SD.LeakRate.MC.Master,TRUE, FALSE))
+                            mutate(OOC_1SD = ifelse(Avg.LeakRate>(Mean.LeakRate.MC.Master+SD.LeakRate.MC.Master) | Avg.LeakRate<(Mean.LeakRate.MC.Master-SD.LeakRate.MC.Master),TRUE, FALSE),
+                                   OOC_2SD = ifelse(Avg.LeakRate>(Mean.LeakRate.MC.Master+2*SD.LeakRate.MC.Master) | Avg.LeakRate<(Mean.LeakRate.MC.Master-2*SD.LeakRate.MC.Master),TRUE, FALSE),
+                                   OOC_3SD = ifelse(Avg.LeakRate>(Mean.LeakRate.MC.Master+3*SD.LeakRate.MC.Master) | Avg.LeakRate<(Mean.LeakRate.MC.Master-3*SD.LeakRate.MC.Master),TRUE, FALSE))
 
 # get the daily summary of production data
 dt.DailyStat.MC.sub <- Daily.Statics.AirDecay.MC(dt.AirDecay.MC.NoMaster.sub, -6,6)
@@ -75,7 +75,7 @@ sum <- dt.combined.MC %>%
         summarize( TestQty = sum(Qty.x), NGQty = sum(NGQty), RejectRate = sum(NGQty)/sum(Qty.x), Days = n() )
 
 # #Copy to clipboard
-# write.table(dt.combined.MC, "clipboard", sep="\t", row.names=FALSE)
+write.table(sum, "clipboard", sep="\t", row.names=FALSE)
 # write.table(dt.DailyStat.MC.OKMaster, "clipboard", sep="\t", row.names=FALSE)
 
 
